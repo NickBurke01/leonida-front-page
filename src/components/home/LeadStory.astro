@@ -58,7 +58,7 @@ const channel = isVideo ? LONG : SHORTS;
         badge="Latest edition"
       />
     ) : (
-      <a class="lead__img" href={story.href}><img src={story.thumb} alt="" width={story.thumbWidth} height={story.thumbHeight} loading="eager" fetchpriority="high" /></a>
+      <a class="lead__img" href={story.href} aria-label={story.title}><img src={story.thumb} alt="" width={story.thumbWidth} height={story.thumbHeight} loading="eager" fetchpriority="high" /></a>
     )}
   </div>
   <div class="lead__body">

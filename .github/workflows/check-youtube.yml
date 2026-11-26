@@ -1,11 +1,11 @@
-# Once a day: look at the long-form channel (@FrontPageLeonida) for a new upload (a few seconds, no changes).
-# The site only rebuilds when there IS a new long-form video; otherwise nothing happens.
-# Shorts don't trigger a rebuild on their own; Top Shorts rankings refresh with each rebuild.
+# Once a day: look at both YouTube channels (@FrontPageLeonida long form, @LeonidaFP Shorts) for a new upload.
+# The site only rebuilds when there IS a new video or Short; otherwise nothing happens.
+# Top Shorts rankings (the high performers) refresh with each rebuild.
 name: Check YouTube for new uploads
 
 on:
   schedule:
-    - cron: '7 12 * * *' # once a day at 12:07 UTC (6:07am Central): rebuild only if there is a new long-form upload
+    - cron: '7 12 * * *' # once a day at 12:07 UTC (6:07am Central): rebuild only if either channel has a new upload
   workflow_dispatch:
     inputs:
       force:
@@ -31,6 +31,7 @@ jobs:
           FORCE: ${{ inputs.force == true }}
           SITE_URL: https://leonidafrontpage.netlify.app
           LONG_CHANNEL: UCYQrsIQpKIGQuLw9PMO68nw
+          SHORTS_CHANNEL: UCDgujTykhKXMQbi8-mmuncQ
         run: |
           set -u
           newest() {
@@ -38,17 +39,20 @@ jobs:
               | grep -o '<yt:videoId>[^<]*' | head -n1 | sed 's/<yt:videoId>//' || true
           }
           LONG_NOW=$(newest "$LONG_CHANNEL")
+          SHORTS_NOW=$(newest "$SHORTS_CHANNEL")
           LIVE=$(curl -fsSL --max-time 20 "$SITE_URL/latest.json" || echo '{}')
           LONG_LIVE=$(echo "$LIVE" | python3 -c 'import json,sys; d=json.load(sys.stdin); print(d.get("long") or "")' 2>/dev/null || echo "")
+          SHORTS_LIVE=$(echo "$LIVE" | python3 -c 'import json,sys; d=json.load(sys.stdin); print(d.get("shorts") or "")' 2>/dev/null || echo "")
 
           echo "Long form:  YouTube=${LONG_NOW:-none}  site=${LONG_LIVE:-none}"
+          echo "Shorts:     YouTube=${SHORTS_NOW:-none}  site=${SHORTS_LIVE:-none}"
 
           if [ "$FORCE" != "true" ]; then
-            if [ -z "$LONG_NOW" ]; then
-              echo "No long-form video found (or the feed couldn't be read). Nothing to do."; exit 0
+            if [ -z "$LONG_NOW$SHORTS_NOW" ]; then
+              echo "Couldn't read either feed this time. Nothing to do."; exit 0
             fi
-            if [ "$LONG_NOW" = "$LONG_LIVE" ]; then
-              echo "No new long-form upload. Nothing to do."; exit 0
+            if [ "$LONG_NOW" = "$LONG_LIVE" ] && [ "$SHORTS_NOW" = "$SHORTS_LIVE" ]; then
+              echo "No new uploads. Nothing to do."; exit 0
             fi
           else
             echo "Manual run: rebuilding on request."

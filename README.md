@@ -17,7 +17,7 @@ You never edit the site to add a video.
 
 - **Long-form videos:** the newest upload becomes the front-page lead story automatically.
 - **Shorts:** only high performers are shown (at least 1,000 views *and* above the channel's typical Short), ranked by views. Change the rules in `src/config/site.ts` under `TOP_SHORTS`.
-- **Once a day** (about 6am Central) a free GitHub check looks at the **long-form channel** for a new upload and asks Netlify to rebuild **only when there is one**. Shorts don't trigger a rebuild on their own; the Shorts rankings refresh whenever the site rebuilds (a long-form upload, a pushed change, or a manual run).
+- **Once a day** (about 6am Central) a free GitHub check looks at **both channels** (long form and Shorts) for a new upload and asks Netlify to rebuild **only when there is one**. Each rebuild refreshes the lead story and re-ranks the high-performing Shorts.
 - **Website reviews happen once a month**: a Claude cloud routine runs on the 1st (16:00 UTC, about 10am Central) and opens a **"Monthly website review" pull request** with its report (`docs/reviews/YYYY-MM.md`) and any small fixes. Nothing goes live until you merge it. Manage it at https://claude.ai/code/routines. Everything else changes only when you decide.
 
 ### Add a guide
@@ -92,7 +92,7 @@ To check on your computer first: `npm run dev`, then open http://localhost:4321.
 2. In GitHub: open the repo → **Settings → Secrets and variables → Actions → New repository secret**. Name: `NETLIFY_BUILD_HOOK`. Value: paste the URL.
 3. Test it: GitHub repo → **Actions → "Check YouTube for new uploads" → Run workflow** (tick "Rebuild even if there is no new upload"). A new deploy should appear in Netlify.
 
-To check that it's running: **GitHub → Actions** shows every daily run and what it decided ("No new long-form upload" or "Netlify rebuild requested").
+To check that it's running: **GitHub → Actions** shows every daily run and what it decided ("No new uploads" or "Netlify rebuild requested").
 
 ### 3. Email signups (the Morning Edition)
 Netlify picks up the signup form on the first deploy. Signups appear under **Netlify → your site → Forms → newsletter**. You can export them as a CSV any time. To send emails you'll later want a mailing tool; that's your call when the list grows.

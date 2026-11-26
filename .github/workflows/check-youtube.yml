@@ -1,11 +1,11 @@
-# Once a day: look at both YouTube channels (@FrontPageLeonida long form, @LeonidaFP Shorts) for a new upload.
+# Every 48 hours: look at both YouTube channels (@FrontPageLeonida long form, @LeonidaFP Shorts) for a new upload.
 # The site only rebuilds when there IS a new video or Short; otherwise nothing happens.
 # Top Shorts rankings (the high performers) refresh with each rebuild.
 name: Check YouTube for new uploads
 
 on:
   schedule:
-    - cron: '7 12 * * *' # once a day at 12:07 UTC (6:07am Central): rebuild only if either channel has a new upload
+    - cron: '7 12 * * *' # fires daily at 12:07 UTC (6:07am Central); the step below skips every other day = every 48 hours
   workflow_dispatch:
     inputs:
       force:
@@ -34,6 +34,10 @@ jobs:
           SHORTS_CHANNEL: UCDgujTykhKXMQbi8-mmuncQ
         run: |
           set -u
+          # Every 48 hours: scheduled runs only go ahead on even-numbered days since 1970 (manual runs always go).
+          if [ "${{ github.event_name }}" = "schedule" ] && [ $(( $(date -u +%s) / 86400 % 2 )) -ne 0 ]; then
+            echo "Off day (the check runs every 48 hours). Nothing to do."; exit 0
+          fi
           newest() {
             curl -fsSL --max-time 20 "https://www.youtube.com/feeds/videos.xml?channel_id=$1" \
               | grep -o '<yt:videoId>[^<]*' | head -n1 | sed 's/<yt:videoId>//' || true

@@ -1,0 +1,71 @@
+---
+import BaseLayout from '~/layouts/BaseLayout.astro';
+import Breadcrumbs from '~/components/Breadcrumbs.astro';
+import DbHub from '~/components/db/DbHub.astro';
+import DbEmpty from '~/components/db/DbEmpty.astro';
+import EntryCard from '~/components/db/EntryCard.astro';
+import SubscribeBand from '~/components/SubscribeBand.astro';
+import { VEHICLE_CLASSES, VEHICLE_STATS } from '~/config/database';
+import { getVehicles, mph, money } from '~/lib/database';
+import { breadcrumbs, itemList } from '~/lib/seo';
+
+const vehicles = await getVehicles();
+const crumbs = [{ name: 'Home', href: '/' }, { name: 'Vehicles', href: '/vehicles/' }];
+const groups = Object.entries(VEHICLE_CLASSES).map(([key, label]) => ({ key, label, count: vehicles.filter((v) => v.data.class === key).length }));
+const real = vehicles.filter((v) => !v.data.sample);
+---
+<BaseLayout kind="hub"
+  title="GTA 6 Vehicles: Every Car, Top Speed, Price & Location"
+  description="Every GTA 6 vehicle with top speed, price, where to find it and stats as bars. Filter by class, compare any two cars, and see the tier list."
+  jsonLd={[breadcrumbs(crumbs), ...(real.length ? [itemList('GTA 6 vehicles', real.map((v) => ({ name: v.data.name, href: `/vehicles/${v.id}/` })))] : [])]}
+  noindex={real.length === 0}
+>
+  <section class="page-head">
+    <div class="wrap">
+      <Breadcrumbs items={crumbs} />
+      <h1>GTA 6 Vehicles</h1>
+      <p class="page-head__lede">Every car, bike, boat and aircraft we've confirmed in Leonida: top speed, price, where to find it, and stats you can compare. Checked in-game, with our own footage.</p>
+    </div>
+  </section>
+  <section class="section section--tight">
+    <div class="wrap">
+      {vehicles.length === 0 ? (
+        <DbEmpty noun="vehicle" source="vehicles-empty" />
+      ) : (
+        <DbHub
+          groups={groups}
+          noun="vehicles"
+          compareHref="/vehicles/compare/"
+          tierHref="/tier-lists/#vehicles"
+          sorts={[
+            { key: 'tier', label: 'Best first (tier)' },
+            { key: 'speed', label: 'Top speed', dir: 'desc' },
+            { key: 'price', label: 'Price: low to high' },
+            { key: 'price', label: 'Price: high to low', dir: 'desc' },
+            { key: 'name', label: 'Name A-Z' },
+          ]}
+        >
+          {vehicles.map((v) => (
+            <EntryCard
+              href={`/vehicles/${v.id}/`}
+              name={v.data.name}
+              group={v.data.class}
+              groupLabel={VEHICLE_CLASSES[v.data.class]}
+              tier={v.data.tier}
+              image={v.data.images[0]?.src}
+              imageAlt={v.data.images[0]?.alt}
+              placeholder="/images/placeholders/db-vehicle.webp"
+              stats={v.data.stats}
+              statLabels={VEHICLE_STATS}
+              statKeys={['speed', 'acceleration', 'handling']}
+              meta={[mph(v.data.topSpeedMph), money(v.data.price)].filter(Boolean).join(' · ') || null}
+              sample={v.data.sample}
+              sort={{ speed: v.data.topSpeedMph, price: v.data.price }}
+            />
+          ))}
+        </DbHub>
+      )}
+    </div>
+  </section>
+  <SubscribeBand />
+</BaseLayout>

@@ -1,0 +1,39 @@
+---
+import BaseLayout from '~/layouts/BaseLayout.astro';
+import Breadcrumbs from '~/components/Breadcrumbs.astro';
+import { SITE } from '~/config/site';
+import { breadcrumbs } from '~/lib/seo';
+const crumbs = [{ name: 'Home', href: '/' }, { name: 'Privacy', href: '/privacy/' }];
+---
+<BaseLayout title="Privacy" description="How the Leonida Front Page website handles your data: no ads, no tracking, and YouTube videos that only load when you press play." jsonLd={[breadcrumbs(crumbs)]}>
+  <section class="page-head">
+    <div class="wrap">
+      <Breadcrumbs items={crumbs} />
+      <h1>Privacy</h1>
+      <p class="page-head__lede">Short version: no ads, no tracking, no cookies from us. If you sign up for the newsletter, we keep your email to send it, and nothing else.</p>
+    </div>
+  </section>
+  <section class="section section--tight">
+    <div class="wrap">
+      <div class="prose">
+        <h2>What this site collects</h2>
+        <p>Nothing about you. There are no analytics scripts, no ad networks and no tracking cookies on this website. Our host (Netlify) keeps standard server logs, like any website, to keep the site running and secure.</p>
+        <h2>Newsletter</h2>
+        <p>If you enter your email in a signup form, it is stored by our host (Netlify Forms) so we can send you the newsletter. We don't sell or share it, and every email has a way to unsubscribe. To have your email removed, contact us and we'll delete it.</p>
+        <h2>The 100% checklist</h2>
+        <p>Your ticks are saved only in your own browser (local storage) so you can come back to them. They never leave your device.</p>
+        <h2>YouTube videos</h2>
+        <p>Videos on this site use YouTube's privacy-enhanced mode and don't load until you press play. Until then, nothing is sent to YouTube. Once you play a video, YouTube's own privacy policy applies to that video.</p>
+        <h2>Links to other sites</h2>
+        <p>Subscribe buttons and video links take you to YouTube. Their policies apply there.</p>
+        {SITE.contactEmail && (
+          <>
+            <h2>Contact</h2>
+            <p>Questions: <a href={`mailto:${SITE.contactEmail}`}>{SITE.contactEmail}</a></p>
+          </>
+        )}
+        <p><em>Last updated November 26, 2026.</em></p>
+      </div>
+    </div>
+  </section>
+</BaseLayout>

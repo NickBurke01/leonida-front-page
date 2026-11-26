@@ -1,0 +1,150 @@
+---
+/** Guides listing with category chips (links, so they work without JavaScript) and instant search. */
+import type { CollectionEntry } from 'astro:content';
+import { GUIDE_CATEGORIES, type GuideCategory } from '~/config/site';
+import GuideCard from './GuideCard.astro';
+import Icon from './Icon.astro';
+
+interface Props {
+  guides: CollectionEntry<'guides'>[];
+  /** Every guide, so the chip counts are right even on a category page. */
+  all: CollectionEntry<'guides'>[];
+  active?: GuideCategory;
+}
+const { guides, all, active } = Astro.props;
+const counts: Record<string, number> = Object.fromEntries(Object.keys(GUIDE_CATEGORIES).map((k) => [k, 0]));
+for (const g of all) counts[g.data.category]++;
+---
+<div class="hub">
+  <div class="hub__tools">
+    <nav class="chips" aria-label="Guide categories">
+      <a href="/guides/" class="chip" aria-current={!active ? 'page' : undefined}>All</a>
+      {Object.entries(GUIDE_CATEGORIES).map(([key, c]) => (
+        <a href={`/guides/${key}/`} class="chip" aria-current={active === key ? 'page' : undefined}>
+          {c.label}<span class="chip__n">{counts[key]}</span>
+        </a>
+      ))}
+    </nav>
+    <label class="search" data-search-wrap hidden>
+      <Icon name="search" size={18} />
+      <span class="sr-only">Search guides</span>
+      <input type="search" placeholder="Search guides" autocomplete="off" data-search />
+    </label>
+  </div>
+  <div class="grid-cards" data-results>
+    {guides.map((g) => <div class="hub__item"><GuideCard entry={g} headingLevel="h2" /></div>)}
+  </div>
+  <p class="hub__none" data-none hidden>No guides match that yet. New guides land with every long-form video.</p>
+  <p class="sr-only" aria-live="polite" data-status></p>
+</div>
+
+<script>
+  const wrap = document.querySelector<HTMLElement>('[data-search-wrap]');
+  const input = document.querySelector<HTMLInputElement>('[data-search]');
+  const items = [...document.querySelectorAll<HTMLElement>('.hub__item')];
+  const none = document.querySelector<HTMLElement>('[data-none]');
+  const status = document.querySelector<HTMLElement>('[data-status]');
+  if (wrap && input) {
+    wrap.hidden = false;
+    let t: number | undefined;
+    input.addEventListener('input', () => {
+      clearTimeout(t);
+      t = window.setTimeout(() => {
+        const q = input.value.trim().toLowerCase();
+        let shown = 0;
+        for (const it of items) {
+          const hay = it.querySelector<HTMLElement>('[data-search]')?.dataset.search ?? '';
+          const ok = !q || q.split(/\s+/).every((w) => hay.includes(w));
+          it.hidden = !ok;
+          if (ok) shown++;
+        }
+        if (none) none.hidden = shown > 0;
+        if (status) status.textContent = q ? `${shown} guide${shown === 1 ? '' : 's'} found` : '';
+      }, 80);
+    });
+  }
+</script>
+
+<style>
+  .hub__tools {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    justify-content: space-between;
+    gap: var(--space-s);
+    margin-bottom: var(--space-l);
+  }
+  .chips {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.5rem;
+  }
+  .chip {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    min-height: 40px;
+    padding: 0 0.95rem;
+    border: 1px solid var(--line-strong);
+    border-radius: var(--radius-pill);
+    font-family: var(--font-ui);
+    font-size: 0.86rem;
+    font-weight: 600;
+    text-decoration: none;
+    color: var(--text-dim);
+    transition:
+      border-color 0.2s var(--ease),
+      background-color 0.2s var(--ease),
+      color 0.2s var(--ease);
+  }
+  .chip:hover {
+    border-color: var(--cream-dim);
+    color: var(--cream);
+  }
+  .chip[aria-current='page'] {
+    background: var(--crimson);
+    border-color: var(--crimson);
+    color: var(--cream);
+  }
+  .chip__n {
+    font-size: 0.72rem;
+    font-variant-numeric: tabular-nums;
+    opacity: 0.7;
+  }
+  .search {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    min-height: 44px;
+    padding: 0 0.9rem;
+    border: 1px solid var(--line-strong);
+    border-radius: var(--radius-pill);
+    background: var(--surface);
+    color: var(--text-mute);
+    min-width: min(280px, 100%);
+  }
+  .search:focus-within {
+    border-color: var(--amber);
+    color: var(--cream);
+  }
+  .search input {
+    flex: 1;
+    min-width: 0;
+    border: 0;
+    background: transparent;
+    outline: none;
+    font-family: var(--font-ui);
+    font-size: 0.95rem;
+  }
+  .search input::placeholder {
+    color: var(--text-mute);
+  }
+  .hub__none {
+    padding: var(--space-xl) 0;
+    text-align: center;
+    color: var(--text-dim);
+  }
+  .hub__item[hidden] {
+    display: none;
+  }
+</style>

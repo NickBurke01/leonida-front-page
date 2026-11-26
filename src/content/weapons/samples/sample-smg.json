@@ -1,0 +1,24 @@
+{
+  "name": "Sample SMG",
+  "category": "smgs",
+  "ammo": "9mm",
+  "magazine": 30,
+  "price": 7500,
+  "location": "SAMPLE: replace with where to get it",
+  "attachments": [
+    "Suppressor",
+    "Extended magazine"
+  ],
+  "stats": {
+    "damage": 48,
+    "fireRate": 88,
+    "range": 42,
+    "accuracy": 55
+  },
+  "tier": "A",
+  "images": [],
+  "faq": [],
+  "sample": true,
+  "confirmedIn": "not-confirmed",
+  "lastVerified": "2026-11-26"
+}

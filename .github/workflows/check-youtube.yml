@@ -1,0 +1,65 @@
+# Every hour: look at both YouTube channels for a new upload (a few seconds, no changes).
+# The site only rebuilds when there IS a new video or Short; otherwise nothing happens.
+# (Top Shorts rankings refresh as part of each upload rebuild.)
+name: Check YouTube for new uploads
+
+on:
+  schedule:
+    - cron: '7 * * * *' # every hour: rebuild only if there is a new upload
+  workflow_dispatch:
+    inputs:
+      force:
+        description: 'Rebuild even if there is no new upload'
+        type: boolean
+        default: false
+
+permissions:
+  contents: read
+
+concurrency:
+  group: check-youtube
+  cancel-in-progress: true
+
+jobs:
+  check:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - name: Compare YouTube with the live site
+        env:
+          NETLIFY_BUILD_HOOK: ${{ secrets.NETLIFY_BUILD_HOOK }}
+          FORCE: ${{ inputs.force == true }}
+          SITE_URL: https://leonidafrontpage.netlify.app
+          LONG_CHANNEL: UCYQrsIQpKIGQuLw9PMO68nw
+          SHORTS_CHANNEL: UCDgujTykhKXMQbi8-mmuncQ
+        run: |
+          set -u
+          newest() {
+            curl -fsSL --max-time 20 "https://www.youtube.com/feeds/videos.xml?channel_id=$1" \
+              | grep -o '<yt:videoId>[^<]*' | head -n1 | sed 's/<yt:videoId>//' || true
+          }
+          LONG_NOW=$(newest "$LONG_CHANNEL")
+          SHORTS_NOW=$(newest "$SHORTS_CHANNEL")
+          LIVE=$(curl -fsSL --max-time 20 "$SITE_URL/latest.json" || echo '{}')
+          LONG_LIVE=$(echo "$LIVE" | python3 -c 'import json,sys; d=json.load(sys.stdin); print(d.get("long") or "")' 2>/dev/null || echo "")
+          SHORTS_LIVE=$(echo "$LIVE" | python3 -c 'import json,sys; d=json.load(sys.stdin); print(d.get("shorts") or "")' 2>/dev/null || echo "")
+
+          echo "Long form:  YouTube=${LONG_NOW:-none}  site=${LONG_LIVE:-none}"
+          echo "Shorts:     YouTube=${SHORTS_NOW:-none}  site=${SHORTS_LIVE:-none}"
+
+          if [ "$FORCE" != "true" ]; then
+            if [ -z "$LONG_NOW$SHORTS_NOW" ]; then
+              echo "Couldn't read either feed this time. Nothing to do."; exit 0
+            fi
+            if [ "$LONG_NOW" = "$LONG_LIVE" ] && [ "$SHORTS_NOW" = "$SHORTS_LIVE" ]; then
+              echo "No new uploads. Nothing to do."; exit 0
+            fi
+          else
+            echo "Manual run: rebuilding on request."
+          fi
+          if [ -z "${NETLIFY_BUILD_HOOK:-}" ]; then
+            echo "::notice::New upload found, but the NETLIFY_BUILD_HOOK secret isn't set yet, so no rebuild was requested. See README > Automatic updates."
+            exit 0
+          fi
+          curl -fsS -X POST -d '{}' "$NETLIFY_BUILD_HOOK" >/dev/null
+          echo "Netlify rebuild requested."

@@ -1,0 +1,23 @@
+{
+  "name": "Sample Sniper",
+  "category": "sniper-rifles",
+  "ammo": ".308",
+  "magazine": 5,
+  "price": 22000,
+  "location": "SAMPLE: replace with where to get it",
+  "attachments": [
+    "Advanced scope"
+  ],
+  "stats": {
+    "damage": 96,
+    "fireRate": 12,
+    "range": 98,
+    "accuracy": 92
+  },
+  "tier": "A",
+  "images": [],
+  "faq": [],
+  "sample": true,
+  "confirmedIn": "not-confirmed",
+  "lastVerified": "2026-11-26"
+}

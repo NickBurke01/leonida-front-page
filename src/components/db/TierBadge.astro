@@ -1,0 +1,59 @@
+---
+import { TIER_NOTES, type Tier } from '~/config/database';
+interface Props {
+  tier?: Tier | null;
+  size?: 's' | 'm' | 'l';
+}
+const { tier, size = 'm' } = Astro.props;
+---
+{tier && (
+  <span class:list={['tb', `tb--${tier}`, `tb--${size}`]} title={`${tier}-tier: ${TIER_NOTES[tier]}`}>
+    <span class="sr-only">Tier </span>{tier}
+  </span>
+)}
+
+<style>
+  .tb {
+    display: inline-grid;
+    place-items: center;
+    flex: none;
+    font-family: var(--font-head);
+    font-weight: 800;
+    line-height: 1;
+    color: var(--ink);
+    border-radius: 6px;
+    transform: rotate(-3deg);
+  }
+  .tb--s {
+    width: 26px;
+    height: 26px;
+    font-size: 0.95rem;
+  }
+  .tb--m {
+    width: 34px;
+    height: 34px;
+    font-size: 1.2rem;
+  }
+  .tb--l {
+    width: 54px;
+    height: 54px;
+    font-size: 2rem;
+    border-radius: 10px;
+  }
+  .tb--S {
+    background: linear-gradient(135deg, #ffd56b, var(--amber));
+    box-shadow: 0 0 0 2px rgb(250 184 60 / 0.35);
+  }
+  .tb--A {
+    background: var(--coral);
+  }
+  .tb--B {
+    background: #c86cc2;
+  }
+  .tb--C {
+    background: var(--teal);
+  }
+  .tb--D {
+    background: var(--cream-mute);
+  }
+</style>

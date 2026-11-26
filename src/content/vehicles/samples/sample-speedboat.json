@@ -1,0 +1,27 @@
+{
+  "name": "Sample Speedboat",
+  "class": "boats",
+  "manufacturer": "Sample",
+  "realLife": "Offshore racing boat",
+  "topSpeedMph": 94,
+  "price": 210000,
+  "location": "SAMPLE: replace with where you found it in-game",
+  "seats": 2,
+  "stats": {
+    "speed": 74,
+    "acceleration": 70,
+    "braking": 30,
+    "handling": 60
+  },
+  "tier": "B",
+  "images": [],
+  "faq": [
+    {
+      "q": "Where do you find the Sample Speedboat?",
+      "a": "SAMPLE answer: replace with the confirmed location."
+    }
+  ],
+  "sample": true,
+  "confirmedIn": "not-confirmed",
+  "lastVerified": "2026-11-26"
+}

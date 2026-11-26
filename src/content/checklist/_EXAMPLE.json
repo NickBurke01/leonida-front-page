@@ -1,0 +1,14 @@
+{
+  "_help": "HOW TO ADD A CHECKLIST GROUP: copy, rename (e.g. story-missions.json), list the items. Item ids must be unique, lowercase-with-dashes, and never change once published (people's ticks are saved against them).",
+  "title": "Story Missions",
+  "order": 1,
+  "description": "Every main mission.",
+  "items": [
+    {
+      "id": "story-001",
+      "label": "First mission name",
+      "note": "Optional tip",
+      "link": "/missions/first-mission/"
+    }
+  ]
+}

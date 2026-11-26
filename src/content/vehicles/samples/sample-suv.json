@@ -1,0 +1,27 @@
+{
+  "name": "Sample SUV",
+  "class": "suvs",
+  "manufacturer": "Sample",
+  "realLife": "Full-size luxury SUV",
+  "topSpeedMph": 128,
+  "price": 72000,
+  "location": "SAMPLE: replace with where you found it in-game",
+  "seats": 2,
+  "stats": {
+    "speed": 58,
+    "acceleration": 54,
+    "braking": 60,
+    "handling": 50
+  },
+  "tier": "C",
+  "images": [],
+  "faq": [
+    {
+      "q": "Where do you find the Sample SUV?",
+      "a": "SAMPLE answer: replace with the confirmed location."
+    }
+  ],
+  "sample": true,
+  "confirmedIn": "not-confirmed",
+  "lastVerified": "2026-11-26"
+}

@@ -1,0 +1,176 @@
+---
+/**
+ * Click-to-play YouTube player. Shows an optimised thumbnail and a play button; the real
+ * YouTube player (youtube-nocookie.com) only loads when the visitor clicks.
+ */
+import { getImage } from 'astro:assets';
+import Icon from './Icon.astro';
+
+interface Props {
+  embedSrc: string;
+  title: string;
+  thumb: string;
+  thumbWidth: number;
+  thumbHeight: number;
+  aspect?: 'wide' | 'tall';
+  /** Render width hint for the optimised image. */
+  width?: number;
+  eager?: boolean;
+  badge?: string;
+  class?: string;
+  /** Lets another button start this player (e.g. a "Watch" button next to it). */
+  id?: string;
+}
+const { embedSrc, title, thumb, thumbWidth, thumbHeight, aspect = 'wide', width = aspect === 'wide' ? 1280 : 540, eager = false, badge, class: cls, id } = Astro.props;
+
+let src = thumb;
+let srcset: string | undefined;
+try {
+  const widths = aspect === 'wide' ? [480, 800, 1280] : [270, 405, 540];
+  const img = await getImage({ src: thumb, width, height: Math.round((width * thumbHeight) / thumbWidth), widths: widths.filter((w) => w <= thumbWidth), format: 'webp', quality: 74 });
+  src = img.src;
+  srcset = img.srcSet.attribute;
+} catch {
+  // Fall back to YouTube's own image if optimisation isn't possible.
+}
+const sizes = aspect === 'wide' ? '(min-width: 1240px) 820px, (min-width: 900px) 66vw, 100vw' : '(min-width: 900px) 220px, 46vw';
+---
+<div class:list={['vf', `vf--${aspect}`, cls]} data-vf id={id}>
+  <button class="vf__btn" type="button" data-embed={embedSrc} data-title={title} aria-label={`Play: ${title}`}>
+    <img
+      class="vf__img"
+      src={src}
+      srcset={srcset}
+      sizes={sizes}
+      alt=""
+      width={thumbWidth}
+      height={thumbHeight}
+      loading={eager ? 'eager' : 'lazy'}
+      fetchpriority={eager ? 'high' : undefined}
+      decoding="async"
+    />
+    <span class="vf__shade" aria-hidden="true"></span>
+    <span class="vf__play" aria-hidden="true"><Icon name="play" size={aspect === 'wide' ? 30 : 22} /></span>
+  </button>
+  {badge && <span class="vf__badge">{badge}</span>}
+</div>
+
+<style>
+  .vf {
+    position: relative;
+    overflow: hidden;
+    border-radius: var(--radius-l);
+    background: var(--indigo-950);
+    box-shadow: var(--shadow-card);
+  }
+  .vf--wide {
+    aspect-ratio: 16 / 9;
+  }
+  .vf--tall {
+    aspect-ratio: 9 / 16;
+    border-radius: var(--radius-m);
+  }
+  .vf__btn {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    padding: 0;
+    border: 0;
+    background: none;
+    color: var(--cream);
+  }
+  .vf__img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    transition: transform 0.6s var(--ease);
+  }
+  .vf__btn:hover .vf__img {
+    transform: scale(1.03);
+  }
+  .vf__shade {
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(180deg, transparent 50%, rgb(10 3 27 / 0.75));
+  }
+  .vf__badge {
+    position: absolute;
+    z-index: 1;
+    pointer-events: none;
+    top: 0.75rem;
+    left: 0.75rem;
+    padding: 0.25rem 0.6rem;
+    background: var(--amber);
+    color: var(--ink);
+    font-family: var(--font-ui);
+    font-size: 0.68rem;
+    font-weight: 800;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    border-radius: 3px;
+    transform: rotate(-3deg);
+  }
+  .vf__play {
+    position: absolute;
+    left: 50%;
+    top: 50%;
+    display: grid;
+    place-items: center;
+    width: 76px;
+    height: 76px;
+    margin: -38px 0 0 -38px;
+    border-radius: 50%;
+    background: var(--crimson);
+    box-shadow:
+      0 0 0 8px rgb(209 10 78 / 0.25),
+      0 18px 30px -10px rgb(0 0 0 / 0.7);
+    transition:
+      transform 0.25s var(--ease),
+      box-shadow 0.25s var(--ease);
+  }
+  .vf__play :global(svg) {
+    margin-left: 4px;
+  }
+  .vf--tall .vf__play {
+    width: 52px;
+    height: 52px;
+    margin: -26px 0 0 -26px;
+    box-shadow: 0 0 0 6px rgb(209 10 78 / 0.22);
+  }
+  .vf__btn:hover .vf__play,
+  .vf__btn:focus-visible .vf__play {
+    transform: scale(1.08);
+    box-shadow:
+      0 0 0 12px rgb(209 10 78 / 0.25),
+      0 18px 30px -10px rgb(0 0 0 / 0.7);
+  }
+  .vf__btn:focus-visible {
+    outline: 3px solid var(--focus);
+    outline-offset: -3px;
+  }
+  .vf :global(iframe) {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    border: 0;
+  }
+</style>
+
+<script>
+  document.addEventListener('click', (e) => {
+    const btn = (e.target as HTMLElement).closest<HTMLButtonElement>('[data-embed]');
+    if (!btn) return;
+    const box = btn.closest('[data-vf]');
+    if (!box) return;
+    const iframe = document.createElement('iframe');
+    iframe.src = btn.dataset.embed!;
+    iframe.title = btn.dataset.title ?? 'YouTube video';
+    iframe.allow = 'accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share';
+    iframe.allowFullscreen = true;
+    iframe.referrerPolicy = 'strict-origin-when-cross-origin';
+    box.replaceChildren(iframe);
+    iframe.focus();
+  });
+</script>

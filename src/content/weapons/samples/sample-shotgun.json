@@ -1,0 +1,23 @@
+{
+  "name": "Sample Shotgun",
+  "category": "shotguns",
+  "ammo": "12 gauge",
+  "magazine": 8,
+  "price": 3500,
+  "location": "SAMPLE: replace with where to get it",
+  "attachments": [
+    "Flashlight"
+  ],
+  "stats": {
+    "damage": 90,
+    "fireRate": 30,
+    "range": 18,
+    "accuracy": 40
+  },
+  "tier": "A",
+  "images": [],
+  "faq": [],
+  "sample": true,
+  "confirmedIn": "not-confirmed",
+  "lastVerified": "2026-11-26"
+}

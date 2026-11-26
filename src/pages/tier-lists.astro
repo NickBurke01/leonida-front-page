@@ -1,0 +1,174 @@
+---
+import BaseLayout from '~/layouts/BaseLayout.astro';
+import Breadcrumbs from '~/components/Breadcrumbs.astro';
+import TierBadge from '~/components/db/TierBadge.astro';
+import DbEmpty from '~/components/db/DbEmpty.astro';
+import SubscribeBand from '~/components/SubscribeBand.astro';
+import { TIERS, TIER_NOTES, VEHICLE_CLASSES, WEAPON_CATEGORIES } from '~/config/database';
+import { getVehicles, getWeapons, mph } from '~/lib/database';
+import { breadcrumbs } from '~/lib/seo';
+import { formatDate } from '~/lib/format';
+
+const vehicles = (await getVehicles()).filter((v) => v.data.tier);
+const weapons = (await getWeapons()).filter((w) => w.data.tier);
+const crumbs = [{ name: 'Home', href: '/' }, { name: 'Tier lists', href: '/tier-lists/' }];
+const latest = [...vehicles, ...weapons].reduce<Date | null>((d, e) => (!d || e.data.lastVerified > d ? e.data.lastVerified : d), null);
+const lists = [
+  { id: 'vehicles', title: 'Vehicle tier list', base: '/vehicles/', placeholder: '/images/placeholders/db-vehicle.webp', items: vehicles.map((v) => ({ id: v.id, name: v.data.name, tier: v.data.tier!, img: v.data.images[0]?.src, sub: [VEHICLE_CLASSES[v.data.class], mph(v.data.topSpeedMph)].filter(Boolean).join(' · '), sample: v.data.sample })) },
+  { id: 'weapons', title: 'Weapon tier list', base: '/weapons/', placeholder: '/images/placeholders/db-weapon.webp', items: weapons.map((w) => ({ id: w.id, name: w.data.name, tier: w.data.tier!, img: w.data.images[0]?.src, sub: WEAPON_CATEGORIES[w.data.category], sample: w.data.sample })) },
+];
+const anyReal = [...vehicles, ...weapons].some((e) => !e.data.sample);
+---
+<BaseLayout kind="hub"
+  title="GTA 6 Tier Lists: Best Cars & Best Guns Ranked"
+  description="GTA 6 tier lists for vehicles and weapons, from S-tier down to D-tier. Ranked from our own testing and updated as the game changes."
+  jsonLd={[breadcrumbs(crumbs)]}
+  noindex={!anyReal}
+>
+  <section class="page-head">
+    <div class="wrap">
+      <Breadcrumbs items={crumbs} />
+      <h1>GTA 6 Tier Lists</h1>
+      <p class="page-head__lede">The best cars and guns ranked from S to D, based on our own testing. {latest && <>Last updated {formatDate(latest)}.</>}</p>
+      <nav class="tl__jump" aria-label="Jump to list">
+        <a href="#vehicles">Vehicles</a><a href="#weapons">Weapons</a>
+      </nav>
+    </div>
+  </section>
+
+  {lists.map((list) => (
+    <section class="section section--tight" id={list.id} aria-labelledby={`${list.id}-h`}>
+      <div class="wrap">
+        <div class="section-head"><div><span class="kicker">Ranked</span><h2 id={`${list.id}-h`}>{list.title}</h2></div><a class="more" href={list.base}>Full database</a></div>
+        {list.items.length === 0 ? (
+          <DbEmpty noun={list.id === 'vehicles' ? 'vehicle' : 'weapon'} source={`tier-${list.id}`} />
+        ) : (
+          <div class="tl">
+            {TIERS.map((t) => {
+              const row = list.items.filter((i) => i.tier === t);
+              return (
+                <div class:list={['tl__row', `tl__row--${t}`]}>
+                  <div class="tl__label"><TierBadge tier={t} size="l" /><span>{TIER_NOTES[t]}</span></div>
+                  <ul class="tl__items">
+                    {row.length ? row.map((i) => (
+                      <li>
+                        <a class="tl__item" href={`${list.base}${i.id}/`}>
+                          <img src={i.img ?? list.placeholder} alt="" width="160" height="90" loading="lazy" />
+                          <span class="tl__name">{i.name}{i.sample && <em> sample</em>}</span>
+                          <span class="tl__sub">{i.sub}</span>
+                        </a>
+                      </li>
+                    )) : <li class="tl__none">Nothing here yet</li>}
+                  </ul>
+                </div>
+              );
+            })}
+          </div>
+        )}
+      </div>
+    </section>
+  ))}
+  <SubscribeBand />
+</BaseLayout>
+
+<style>
+  .tl__jump {
+    display: flex;
+    gap: 0.5rem;
+    margin-top: var(--space-m);
+  }
+  .tl__jump a {
+    padding: 0.5rem 1rem;
+    border: 1px solid var(--line-strong);
+    border-radius: var(--radius-pill);
+    font-family: var(--font-ui);
+    font-weight: 700;
+    font-size: 0.86rem;
+    text-decoration: none;
+  }
+  .tl {
+    display: grid;
+    gap: 0.5rem;
+  }
+  .tl__row {
+    display: grid;
+    grid-template-columns: 210px 1fr;
+    gap: var(--space-s);
+    align-items: center;
+    padding: 0.75rem;
+    border: 1px solid var(--line);
+    border-radius: var(--radius-l);
+    background: var(--surface);
+  }
+  .tl__row--S {
+    border-color: rgb(250 184 60 / 0.45);
+    background: linear-gradient(90deg, rgb(250 184 60 / 0.08), var(--surface) 40%);
+  }
+  .tl__label {
+    display: flex;
+    align-items: center;
+    gap: 0.8rem;
+    font-family: var(--font-ui);
+    font-size: 0.8rem;
+    color: var(--text-mute);
+  }
+  .tl__items {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.5rem;
+    list-style: none;
+    padding: 0;
+  }
+  .tl__item {
+    display: grid;
+    grid-template-columns: 64px auto;
+    grid-template-rows: auto auto;
+    column-gap: 0.6rem;
+    align-items: center;
+    padding: 0.4rem 0.8rem 0.4rem 0.4rem;
+    border: 1px solid var(--line);
+    border-radius: var(--radius-m);
+    background: var(--bg);
+    text-decoration: none;
+    transition: border-color 0.2s var(--ease), transform 0.2s var(--ease);
+  }
+  .tl__item:hover {
+    border-color: var(--line-strong);
+    transform: translateY(-2px);
+  }
+  .tl__item img {
+    grid-row: 1 / 3;
+    width: 64px;
+    height: 36px;
+    object-fit: cover;
+    border-radius: 6px;
+  }
+  .tl__name {
+    font-family: var(--font-ui);
+    font-weight: 700;
+    font-size: 0.88rem;
+  }
+  .tl__name em {
+    font-style: normal;
+    font-size: 0.62rem;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    color: var(--amber);
+  }
+  .tl__sub {
+    font-family: var(--font-ui);
+    font-size: 0.72rem;
+    color: var(--text-mute);
+  }
+  .tl__none {
+    font-family: var(--font-ui);
+    font-size: 0.82rem;
+    font-style: italic;
+    color: var(--text-mute);
+  }
+  @media (max-width: 720px) {
+    .tl__row {
+      grid-template-columns: 1fr;
+    }
+  }
+</style>

@@ -1,0 +1,213 @@
+---
+/**
+ * Database hub controls: instant search, filter chips and sort, on top of a grid of EntryCards.
+ * Everything is visible without JavaScript; the controls appear once the script runs.
+ */
+import Icon from '../Icon.astro';
+interface Props {
+  groups: { key: string; label: string; count: number }[];
+  sorts: { key: string; label: string; dir?: 'asc' | 'desc' }[];
+  noun: string;
+  compareHref?: string;
+  tierHref?: string;
+}
+const { groups, sorts, noun, compareHref, tierHref } = Astro.props;
+const total = groups.reduce((n, g) => n + g.count, 0);
+---
+<div class="hub" data-hub>
+  <div class="hub__bar" data-hub-controls hidden>
+    <label class="hub__search">
+      <Icon name="search" size={18} />
+      <span class="sr-only">Search {noun}</span>
+      <input type="search" placeholder={`Search ${total} ${noun}`} autocomplete="off" data-hub-search />
+    </label>
+    <label class="hub__sort">
+      <span>Sort</span>
+      <select data-hub-sort>
+        {sorts.map((s) => <option value={`${s.key}:${s.dir ?? 'asc'}`}>{s.label}</option>)}
+      </select>
+    </label>
+    {(compareHref || tierHref) && (
+      <div class="hub__links">
+        {compareHref && <a href={compareHref}>Compare</a>}
+        {tierHref && <a href={tierHref}>Tier list</a>}
+      </div>
+    )}
+  </div>
+  <div class="hub__chips" role="group" aria-label={`Filter ${noun}`} data-hub-controls hidden>
+    <button type="button" class="chip" aria-pressed="true" data-hub-group="">All <span class="chip__n">{total}</span></button>
+    {groups.filter((g) => g.count > 0).map((g) => (
+      <button type="button" class="chip" aria-pressed="false" data-hub-group={g.key}>{g.label} <span class="chip__n">{g.count}</span></button>
+    ))}
+  </div>
+  <div class="hub__grid" data-hub-grid>
+    <slot />
+  </div>
+  <p class="hub__none" data-hub-none hidden>Nothing matches. Try another search or filter.</p>
+  <p class="sr-only" aria-live="polite" data-hub-status></p>
+</div>
+
+<script>
+  document.querySelectorAll<HTMLElement>('[data-hub]').forEach((hub) => {
+    hub.querySelectorAll<HTMLElement>('[data-hub-controls]').forEach((el) => (el.hidden = false));
+    const grid = hub.querySelector<HTMLElement>('[data-hub-grid]')!;
+    const cards = [...grid.querySelectorAll<HTMLElement>('[data-entry]')];
+    const search = hub.querySelector<HTMLInputElement>('[data-hub-search]');
+    const sort = hub.querySelector<HTMLSelectElement>('[data-hub-sort]');
+    const chips = [...hub.querySelectorAll<HTMLButtonElement>('[data-hub-group]')];
+    const none = hub.querySelector<HTMLElement>('[data-hub-none]')!;
+    const status = hub.querySelector<HTMLElement>('[data-hub-status]')!;
+    const params = new URLSearchParams(location.search);
+    let group = params.get('class') ?? params.get('category') ?? '';
+
+    const apply = () => {
+      const q = (search?.value ?? '').trim().toLowerCase();
+      let shown = 0;
+      for (const c of cards) {
+        const ok = (!group || c.dataset.group === group) && (!q || q.split(/\s+/).every((w) => (c.dataset.search ?? '').includes(w)));
+        c.hidden = !ok;
+        if (ok) shown++;
+      }
+      chips.forEach((b) => b.setAttribute('aria-pressed', String((b.dataset.hubGroup ?? '') === group)));
+      none.hidden = shown > 0;
+      status.textContent = `${shown} shown`;
+    };
+    const reorder = () => {
+      if (!sort) return;
+      const [key, dir] = sort.value.split(':');
+      const val = (c: HTMLElement) => c.dataset[`sort${key.charAt(0).toUpperCase()}${key.slice(1)}`] ?? '';
+      const sorted = [...cards].sort((a, b) => {
+        const x = val(a), y = val(b);
+        const nx = parseFloat(x), ny = parseFloat(y);
+        const emptyX = x === '', emptyY = y === '';
+        if (emptyX !== emptyY) return emptyX ? 1 : -1; // unknown values last
+        const cmp = !isNaN(nx) && !isNaN(ny) ? nx - ny : x.localeCompare(y);
+        return dir === 'desc' ? -cmp : cmp;
+      });
+      sorted.forEach((c) => grid.appendChild(c));
+    };
+    chips.forEach((b) => b.addEventListener('click', () => { group = b.dataset.hubGroup ?? ''; apply(); }));
+    let t: number | undefined;
+    search?.addEventListener('input', () => { clearTimeout(t); t = window.setTimeout(apply, 70); });
+    sort?.addEventListener('change', reorder);
+    reorder();
+    apply();
+  });
+</script>
+
+<style>
+  .hub__bar {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 0.75rem;
+    margin-bottom: 0.9rem;
+  }
+  .hub__search {
+    flex: 1 1 280px;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    min-height: 46px;
+    padding: 0 0.95rem;
+    border: 1px solid var(--line-strong);
+    border-radius: var(--radius-pill);
+    background: var(--surface);
+    color: var(--text-mute);
+  }
+  .hub__search:focus-within {
+    border-color: var(--amber);
+    color: var(--cream);
+  }
+  .hub__search input {
+    flex: 1;
+    min-width: 0;
+    border: 0;
+    background: transparent;
+    outline: none;
+    font-family: var(--font-ui);
+  }
+  .hub__sort {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    font-family: var(--font-ui);
+    font-size: 0.82rem;
+    color: var(--text-mute);
+  }
+  .hub__sort select {
+    min-height: 46px;
+    padding: 0 0.9rem;
+    border: 1px solid var(--line-strong);
+    border-radius: var(--radius-pill);
+    background: var(--surface);
+    font-family: var(--font-ui);
+    font-size: 0.88rem;
+  }
+  .hub__links {
+    display: flex;
+    gap: 0.5rem;
+  }
+  .hub__links a {
+    display: inline-flex;
+    align-items: center;
+    min-height: 46px;
+    padding: 0 1rem;
+    border-radius: var(--radius-pill);
+    border: 1px solid var(--line-strong);
+    font-family: var(--font-ui);
+    font-size: 0.86rem;
+    font-weight: 700;
+    text-decoration: none;
+  }
+  .hub__links a:hover {
+    border-color: var(--teal);
+    color: var(--teal);
+  }
+  .hub__chips {
+    display: flex;
+    gap: 0.45rem;
+    overflow-x: auto;
+    padding-bottom: 0.4rem;
+    margin-bottom: var(--space-m);
+    scrollbar-width: none;
+  }
+  .chip {
+    flex: none;
+    display: inline-flex;
+    align-items: center;
+    gap: 0.45rem;
+    min-height: 40px;
+    padding: 0 0.95rem;
+    border: 1px solid var(--line-strong);
+    border-radius: var(--radius-pill);
+    background: transparent;
+    font-family: var(--font-ui);
+    font-size: 0.84rem;
+    font-weight: 600;
+    color: var(--text-dim);
+  }
+  .chip:hover {
+    color: var(--cream);
+    border-color: var(--cream-dim);
+  }
+  .chip[aria-pressed='true'] {
+    background: var(--crimson);
+    border-color: var(--crimson);
+    color: var(--cream);
+  }
+  .chip__n {
+    font-size: 0.72rem;
+    opacity: 0.7;
+  }
+  .hub__grid {
+    display: grid;
+    gap: var(--space-s);
+    grid-template-columns: repeat(auto-fill, minmax(min(100%, 240px), 1fr));
+  }
+  .hub__none {
+    padding: var(--space-xl) 0;
+    text-align: center;
+    color: var(--text-dim);
+  }
+</style>

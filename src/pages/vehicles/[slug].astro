@@ -1,0 +1,37 @@
+---
+import BaseLayout from '~/layouts/BaseLayout.astro';
+import DbEntry from '~/components/db/DbEntry.astro';
+import SubscribeBand from '~/components/SubscribeBand.astro';
+import { VEHICLE_CLASSES } from '~/config/database';
+import { getVehicles, related, vehicleAnswer, type Vehicle } from '~/lib/database';
+import { breadcrumbs, faqPage, videoObject } from '~/lib/seo';
+
+export async function getStaticPaths() {
+  const all = await getVehicles();
+  return all.filter((v) => v.id !== 'compare').map((v) => ({ params: { slug: v.id }, props: { entry: v } }));
+}
+interface Props {
+  entry: Vehicle;
+}
+const { entry } = Astro.props;
+const all = await getVehicles();
+const d = entry.data;
+const href = `/vehicles/${entry.id}/`;
+const crumbs = [{ name: 'Home', href: '/' }, { name: 'Vehicles', href: '/vehicles/' }, { name: d.name, href }];
+const title = `${d.name} in GTA 6: Top Speed, Price & Location`;
+const ld: object[] = [breadcrumbs(crumbs)];
+if (d.faq.length) ld.push(faqPage(d.faq));
+if (d.youtubeId) ld.push(videoObject({ id: d.youtubeId, title: `${d.name} in GTA 6`, description: vehicleAnswer(d) }));
+---
+<BaseLayout kind="entry"
+  title={title}
+  description={vehicleAnswer(d).slice(0, 165)}
+  image={d.images[0]?.src}
+  type="article"
+  noindex={d.sample} search={!d.sample}
+  jsonLd={ld}
+  modified={d.lastVerified}
+>
+  <DbEntry kind="vehicle" entry={entry} related={related(all, entry, 'class', 6)} />
+  <SubscribeBand />
+</BaseLayout>

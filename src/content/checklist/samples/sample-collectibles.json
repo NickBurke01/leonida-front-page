@@ -1,0 +1,33 @@
+{
+  "title": "Collectibles (sample)",
+  "order": 2,
+  "description": "SAMPLE group.",
+  "items": [
+    {
+      "id": "sample-collectible-1",
+      "label": "Sample collectible 1",
+      "note": "SAMPLE tip"
+    },
+    {
+      "id": "sample-collectible-2",
+      "label": "Sample collectible 2"
+    },
+    {
+      "id": "sample-collectible-3",
+      "label": "Sample collectible 3"
+    },
+    {
+      "id": "sample-collectible-4",
+      "label": "Sample collectible 4"
+    },
+    {
+      "id": "sample-collectible-5",
+      "label": "Sample collectible 5"
+    },
+    {
+      "id": "sample-collectible-6",
+      "label": "Sample collectible 6"
+    }
+  ],
+  "sample": true
+}

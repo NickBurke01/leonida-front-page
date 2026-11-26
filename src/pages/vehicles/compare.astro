@@ -1,0 +1,33 @@
+---
+import BaseLayout from '~/layouts/BaseLayout.astro';
+import Breadcrumbs from '~/components/Breadcrumbs.astro';
+import Compare from '~/components/db/Compare.astro';
+import DbEmpty from '~/components/db/DbEmpty.astro';
+import { VEHICLE_STATS } from '~/config/database';
+import { getVehicles, vehicleIndex } from '~/lib/database';
+import { breadcrumbs } from '~/lib/seo';
+
+const vehicles = await getVehicles();
+const crumbs = [{ name: 'Home', href: '/' }, { name: 'Vehicles', href: '/vehicles/' }, { name: 'Compare', href: '/vehicles/compare/' }];
+---
+<BaseLayout kind="hub"
+  title="Compare GTA 6 Cars Side by Side"
+  description="Compare any two GTA 6 vehicles side by side: top speed, acceleration, braking, handling and price, with the winner of each stat highlighted."
+  jsonLd={[breadcrumbs(crumbs)]}
+  noindex={vehicles.filter((v) => !v.data.sample).length < 2}
+>
+  <section class="page-head">
+    <div class="wrap">
+      <Breadcrumbs items={crumbs} />
+      <h1>Compare vehicles</h1>
+      <p class="page-head__lede">Pick two. The better stat in each row lights up. Share the page and the comparison comes with it.</p>
+    </div>
+  </section>
+  <section class="section section--tight">
+    <div class="wrap">
+      {vehicles.length < 2 ? <DbEmpty noun="vehicle" source="compare-empty" /> : (
+        <Compare items={vehicleIndex(vehicles)} labels={VEHICLE_STATS} noun="vehicle" base="/vehicles/" placeholder="/images/placeholders/db-vehicle.webp" />
+      )}
+    </div>
+  </section>
+</BaseLayout>

@@ -1,0 +1,113 @@
+---
+/** "Most-watched Shorts": only high-performing Shorts (see TOP_SHORTS in config), ranked by views. */
+import { getTopShorts, embedUrl, formatViews } from '~/lib/youtube';
+import { SHORTS } from '~/config/site';
+import VideoFacade from './VideoFacade.astro';
+import EmptyVideo from './EmptyVideo.astro';
+import SubscribeButton from './SubscribeButton.astro';
+
+interface Props {
+  heading?: string;
+}
+const { heading = 'Most-watched Shorts' } = Astro.props;
+const { shown } = await getTopShorts();
+const clean = (t: string) => t.replace(/\s*#\w+/g, '').trim();
+---
+<section class="shorts" aria-labelledby="shorts-heading">
+  <div class="wrap">
+    <div class="section-head">
+      <div>
+        <span class="kicker">Leonida FP · top performers</span>
+        <h2 id="shorts-heading">{heading}</h2>
+      </div>
+      <div class="shorts__actions">
+        <a class="more" href={`${SHORTS.url}/shorts`} target="_blank" rel="noopener">All Shorts</a>
+        <SubscribeButton channel={SHORTS} variant="secondary" label="Follow Leonida FP" />
+      </div>
+    </div>
+  </div>
+  <div class="shorts__rail" tabindex="0" role="region" aria-label="Most-watched Shorts, scroll sideways">
+    <ol class="shorts__list">
+      {shown.length
+        ? shown.map((v, i) => (
+            <li>
+              <VideoFacade
+                aspect="tall"
+                embedSrc={embedUrl(v.id, { loop: '1', playlist: v.id })}
+                title={clean(v.title)}
+                thumb={v.thumbVertical ?? v.thumb}
+                thumbWidth={v.thumbVertical ? 1080 : v.thumbWidth}
+                thumbHeight={v.thumbVertical ? 1920 : v.thumbHeight}
+                badge={i === 0 ? 'Most watched' : undefined}
+              />
+              <p class="shorts__views"><span class="shorts__rank">#{i + 1}</span>{formatViews(v.views)}</p>
+              <p class="shorts__title">{clean(v.title)}</p>
+            </li>
+          ))
+        : [0, 1, 2, 3, 4].map(() => (
+            <li><EmptyVideo kind="short" /></li>
+          ))}
+    </ol>
+  </div>
+</section>
+
+<style>
+  .shorts {
+    padding-block: var(--space-2xl);
+  }
+  .shorts__actions {
+    display: flex;
+    align-items: center;
+    gap: var(--space-m);
+  }
+  .shorts__rail {
+    overflow-x: auto;
+    scroll-snap-type: x mandatory;
+    scroll-padding-inline: max(var(--gutter), calc((100vw - var(--wrap)) / 2));
+    padding-bottom: var(--space-s);
+    scrollbar-width: thin;
+    scrollbar-color: var(--indigo-600) transparent;
+  }
+  .shorts__list {
+    display: flex;
+    gap: var(--space-s);
+    list-style: none;
+    padding: 0 max(var(--gutter), calc((100vw - var(--wrap)) / 2));
+    width: max-content;
+  }
+  .shorts__list > li {
+    width: clamp(158px, 42vw, 212px);
+    scroll-snap-align: start;
+  }
+  .shorts__views {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    margin-top: 0.65rem;
+    font-family: var(--font-ui);
+    font-size: 0.8rem;
+    font-weight: 700;
+    color: var(--teal);
+  }
+  .shorts__rank {
+    color: var(--amber);
+    font-variant-numeric: tabular-nums;
+  }
+  .shorts__title {
+    margin-top: 0.25rem;
+    font-family: var(--font-ui);
+    font-size: 0.86rem;
+    font-weight: 500;
+    line-height: 1.35;
+    color: var(--text-dim);
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+  }
+  @media (max-width: 700px) {
+    .shorts__actions :global(.sub) {
+      display: none;
+    }
+  }
+</style>

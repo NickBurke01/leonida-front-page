@@ -1,0 +1,25 @@
+{
+  "name": "Sample Rifle",
+  "category": "assault-rifles",
+  "ammo": "5.56mm",
+  "magazine": 30,
+  "price": 14500,
+  "location": "SAMPLE: replace with where to get it",
+  "attachments": [
+    "Scope",
+    "Grip",
+    "Suppressor"
+  ],
+  "stats": {
+    "damage": 72,
+    "fireRate": 70,
+    "range": 66,
+    "accuracy": 68
+  },
+  "tier": "S",
+  "images": [],
+  "faq": [],
+  "sample": true,
+  "confirmedIn": "not-confirmed",
+  "lastVerified": "2026-11-26"
+}

@@ -1,0 +1,124 @@
+---
+/** "Latest": everything newest first (videos, top Shorts, guides, news), so the page changes with every post. */
+import type { Story } from '~/lib/home';
+import { formatViews } from '~/lib/youtube';
+import { formatDate } from '~/lib/format';
+
+interface Props {
+  stories: Story[];
+}
+const { stories } = Astro.props;
+const tag: Record<Story['kind'], string> = { video: 'Video', short: 'Short', guide: 'Guide', news: 'News' };
+---
+<section class="lf" id="latest" aria-labelledby="latest-h">
+  <div class="lf__head">
+    <span class="kicker">Newest first</span>
+    <h2 id="latest-h">Latest</h2>
+  </div>
+  <ol class="lf__list">
+    {stories.map((s) => (
+      <li>
+        <a class="lf__item" href={s.href} target={s.external ? '_blank' : undefined} rel={s.external ? 'noopener' : undefined}>
+          <time class="lf__date" datetime={s.date.toISOString()}>{formatDate(s.date, { month: 'short', day: 'numeric' })}</time>
+          <span class:list={['lf__tag', `lf__tag--${s.kind}`]}>{tag[s.kind]}</span>
+          <span class="lf__title">{s.title}</span>
+          <span class="lf__extra">{s.views ? formatViews(s.views) : s.placeholder ? 'Coming soon' : ''}</span>
+        </a>
+      </li>
+    ))}
+  </ol>
+</section>
+
+<style>
+  .lf__head h2 {
+    font-size: var(--step-3);
+    margin-top: 0.3rem;
+  }
+  .lf__head {
+    padding-bottom: var(--space-s);
+    border-bottom: 3px double var(--line-strong);
+  }
+  .lf__list {
+    list-style: none;
+    padding: 0;
+  }
+  .lf__item {
+    display: grid;
+    grid-template-columns: 4.2rem 4.6rem 1fr auto;
+    gap: 0.8rem;
+    align-items: baseline;
+    padding: 0.85rem 0.3rem;
+    border-bottom: 1px solid var(--line);
+    text-decoration: none;
+    transition: background-color 0.2s var(--ease);
+  }
+  .lf__item:hover {
+    background: rgb(253 242 216 / 0.03);
+  }
+  .lf__item:hover .lf__title {
+    text-decoration: underline;
+    text-decoration-thickness: 1px;
+  }
+  .lf__date {
+    font-family: var(--font-ui);
+    font-size: 0.78rem;
+    font-weight: 600;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    color: var(--text-mute);
+  }
+  .lf__tag {
+    justify-self: start;
+    padding: 0.12rem 0.45rem;
+    border-radius: 4px;
+    font-family: var(--font-ui);
+    font-size: 0.66rem;
+    font-weight: 700;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    background: rgb(209 10 78 / 0.16);
+    color: var(--crimson-text);
+  }
+  .lf__tag--short {
+    background: rgb(61 210 204 / 0.12);
+    color: var(--teal);
+  }
+  .lf__tag--news {
+    background: rgb(250 184 60 / 0.14);
+    color: var(--amber);
+  }
+  .lf__title {
+    font-family: var(--font-body);
+    font-size: 1rem;
+    line-height: 1.35;
+  }
+  .lf__extra {
+    font-family: var(--font-ui);
+    font-size: 0.76rem;
+    font-weight: 700;
+    color: var(--teal);
+    white-space: nowrap;
+  }
+  @media (max-width: 640px) {
+    .lf__item {
+      grid-template-columns: auto 1fr;
+      grid-template-areas: 'date tag' 'title title' 'extra extra';
+      row-gap: 0.3rem;
+    }
+    .lf__date {
+      grid-area: date;
+    }
+    .lf__tag {
+      grid-area: tag;
+    }
+    .lf__title {
+      grid-area: title;
+    }
+    .lf__extra {
+      grid-area: extra;
+    }
+    .lf__extra:empty {
+      display: none;
+    }
+  }
+</style>

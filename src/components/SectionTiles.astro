@@ -1,0 +1,155 @@
+---
+/**
+ * Front-page sections hub: guides and database sections in one grid. Sections that don't have
+ * entries yet still link (to their "opening soon" page) and say so.
+ */
+import Icon from './Icon.astro';
+import { getGuides } from '~/lib/content';
+import { getVehicles, getWeapons, getCharacters, getMissions } from '~/lib/database';
+
+const [guides, v, w, c, m] = await Promise.all([getGuides(), getVehicles(), getWeapons(), getCharacters(), getMissions()]);
+const g = (cat: string) => guides.filter((x) => x.data.category === cat).length;
+const tiles = [
+  { href: '/guides/money/', label: 'Money', note: 'Methods ranked', icon: 'money', count: g('money'), noun: 'guide' },
+  { href: '/guides/map/', label: 'Map', note: 'Leonida, region by region', icon: 'map', count: g('map'), noun: 'guide' },
+  { href: '/vehicles/', label: 'Vehicles', note: 'Speed, price, location', icon: 'vehicles', count: v.length, noun: 'vehicle' },
+  { href: '/weapons/', label: 'Weapons', note: 'Damage, range, tier', icon: 'weapons', count: w.length, noun: 'weapon' },
+  { href: '/characters/', label: 'Characters', note: "Who's who, spoiler-safe", icon: 'secrets', count: c.length, noun: 'character' },
+  { href: '/missions/', label: 'Missions', note: 'Walkthroughs in order', icon: 'getting-started', count: m.length, noun: 'mission' },
+  { href: '/guides/secrets/', label: 'Secrets & Easter Eggs', note: 'Shown, not described', icon: 'search', count: g('secrets'), noun: 'guide' },
+  { href: '/guides/getting-started/', label: 'Getting Started', note: 'Your first hours', icon: 'news', count: g('getting-started'), noun: 'guide' },
+] as const;
+---
+<section class="section" id="sections" aria-labelledby="tiles-heading">
+  <div class="wrap">
+    <div class="section-head">
+      <div>
+        <span class="kicker">Sections</span>
+        <h2 id="tiles-heading">Find what you need</h2>
+      </div>
+      <a class="more" href="/guides/">All guides</a>
+    </div>
+    <ul class="tiles">
+      {tiles.map((t) => (
+        <li data-reveal>
+          <a class="tile" href={t.href}>
+            <span class="tile__icon"><Icon name={t.icon} size={26} /></span>
+            <span class="tile__label">{t.label}</span>
+            <span class="tile__note">{t.note}</span>
+            {t.count > 0
+              ? <span class="tile__count">{t.count} {t.noun}{t.count === 1 ? '' : 's'}</span>
+              : <span class="tile__soon">Opening soon</span>}
+            <Icon name="arrow" size={18} class="tile__arrow" />
+          </a>
+        </li>
+      ))}
+    </ul>
+  </div>
+</section>
+
+<style>
+  .tiles {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: var(--space-s);
+    list-style: none;
+    padding: 0;
+  }
+  .tile {
+    position: relative;
+    display: grid;
+    gap: 0.35rem;
+    height: 100%;
+    padding: var(--space-m) var(--space-m) var(--space-l);
+    border: 1px solid var(--line);
+    border-radius: var(--radius-l);
+    background: var(--surface);
+    text-decoration: none;
+    overflow: hidden;
+    transition:
+      border-color 0.25s var(--ease),
+      transform 0.25s var(--ease),
+      background-color 0.25s var(--ease);
+  }
+  .tile::before {
+    content: '';
+    position: absolute;
+    left: 0;
+    right: 0;
+    top: 0;
+    height: 3px;
+    background: var(--sunset);
+    transform: scaleX(0);
+    transform-origin: left;
+    transition: transform 0.35s var(--ease);
+  }
+  .tile:hover {
+    border-color: var(--line-strong);
+    transform: translateY(-2px);
+    background: var(--surface-2);
+  }
+  .tile:hover::before {
+    transform: scaleX(1);
+  }
+  .tile__icon {
+    display: grid;
+    place-items: center;
+    width: 46px;
+    height: 46px;
+    margin-bottom: 0.4rem;
+    border-radius: 12px;
+    background: rgb(209 10 78 / 0.14);
+    color: var(--crimson-text);
+  }
+  .tile__label {
+    font-family: var(--font-head);
+    font-weight: var(--head-weight);
+    text-transform: var(--head-transform);
+    letter-spacing: var(--head-tracking);
+    font-size: 1.3rem;
+    line-height: 1.1;
+  }
+  .tile__note {
+    font-family: var(--font-ui);
+    font-size: 0.82rem;
+    color: var(--text-mute);
+  }
+  .tile__count,
+  .tile__soon {
+    justify-self: start;
+    margin-top: 0.3rem;
+    padding: 0.15rem 0.5rem;
+    border-radius: 4px;
+    font-family: var(--font-ui);
+    font-size: 0.68rem;
+    font-weight: 700;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+  }
+  .tile__count {
+    background: rgb(61 210 204 / 0.12);
+    color: var(--teal);
+  }
+  .tile__soon {
+    background: rgb(250 184 60 / 0.14);
+    color: var(--amber);
+  }
+  .tile :global(.tile__arrow) {
+    position: absolute;
+    right: 1rem;
+    bottom: 1rem;
+    color: var(--text-mute);
+    transition:
+      transform 0.25s var(--ease),
+      color 0.25s var(--ease);
+  }
+  .tile:hover :global(.tile__arrow) {
+    transform: translateX(3px);
+    color: var(--amber);
+  }
+  @media (max-width: 960px) {
+    .tiles {
+      grid-template-columns: repeat(2, 1fr);
+    }
+  }
+</style>

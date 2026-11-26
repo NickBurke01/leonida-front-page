@@ -1,0 +1,33 @@
+---
+import BaseLayout from '~/layouts/BaseLayout.astro';
+import Breadcrumbs from '~/components/Breadcrumbs.astro';
+import Compare from '~/components/db/Compare.astro';
+import DbEmpty from '~/components/db/DbEmpty.astro';
+import { WEAPON_STATS } from '~/config/database';
+import { getWeapons, weaponIndex } from '~/lib/database';
+import { breadcrumbs } from '~/lib/seo';
+
+const weapons = await getWeapons();
+const crumbs = [{ name: 'Home', href: '/' }, { name: 'Weapons', href: '/weapons/' }, { name: 'Compare', href: '/weapons/compare/' }];
+---
+<BaseLayout kind="hub"
+  title="Compare GTA 6 Weapons Side by Side"
+  description="Compare any two GTA 6 weapons side by side: damage, fire rate, range, accuracy, ammo and price, with the winner of each stat highlighted."
+  jsonLd={[breadcrumbs(crumbs)]}
+  noindex={weapons.filter((w) => !w.data.sample).length < 2}
+>
+  <section class="page-head">
+    <div class="wrap">
+      <Breadcrumbs items={crumbs} />
+      <h1>Compare weapons</h1>
+      <p class="page-head__lede">Pick two. The better stat in each row lights up. Share the page and the comparison comes with it.</p>
+    </div>
+  </section>
+  <section class="section section--tight">
+    <div class="wrap">
+      {weapons.length < 2 ? <DbEmpty noun="weapon" source="compare-empty" /> : (
+        <Compare items={weaponIndex(weapons)} labels={WEAPON_STATS} noun="weapon" base="/weapons/" placeholder="/images/placeholders/db-weapon.webp" />
+      )}
+    </div>
+  </section>
+</BaseLayout>

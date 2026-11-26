@@ -1,0 +1,173 @@
+---
+/**
+ * Site-wide search (Pagefind). The search index is built after `astro build`; the search code
+ * only downloads when someone opens search, so it costs nothing on page load.
+ */
+import Icon from './Icon.astro';
+---
+<button class="srch-btn" type="button" data-search-open aria-haspopup="dialog" aria-label="Search the site">
+  <Icon name="search" size={20} />
+  <span class="srch-btn__label">Search guides, vehicles…</span>
+  <kbd class="srch-btn__kbd">/</kbd>
+</button>
+
+<dialog class="srch" data-search-dialog aria-label="Search the site">
+  <div class="srch__panel">
+    <div class="srch__head">
+      <p class="srch__title">Search Leonida Front Page</p>
+      <button class="srch__close" type="button" data-search-close><Icon name="close" size={20} /><span class="sr-only">Close search</span></button>
+    </div>
+    <div id="lfp-search" data-search-mount></div>
+    <p class="srch__note" data-search-note hidden>Search becomes available on the published site (the search index is built when the site is built).</p>
+  </div>
+</dialog>
+
+<script>
+  const dialog = document.querySelector<HTMLDialogElement>('[data-search-dialog]');
+  const openers = document.querySelectorAll<HTMLButtonElement>('[data-search-open]');
+  let loaded: Promise<void> | null = null;
+  const load = () => (loaded ??= new Promise<void>((resolve, reject) => {
+    const css = document.createElement('link');
+    css.rel = 'stylesheet';
+    css.href = '/pagefind/pagefind-ui.css';
+    document.head.appendChild(css);
+    const s = document.createElement('script');
+    s.src = '/pagefind/pagefind-ui.js';
+    s.onload = () => {
+      // @ts-ignore provided by pagefind-ui.js
+      new window.PagefindUI({ element: '#lfp-search', showSubResults: true, showImages: false, resetStyles: false, autofocus: true, translations: { placeholder: 'Search guides, vehicles, weapons…' } });
+      resolve();
+    };
+    s.onerror = () => reject(new Error('no index'));
+    document.head.appendChild(s);
+  }));
+  const open = async () => {
+    if (!dialog) return;
+    dialog.showModal();
+    try {
+      await load();
+      dialog.querySelector<HTMLInputElement>('input')?.focus();
+    } catch {
+      dialog.querySelector<HTMLElement>('[data-search-note]')!.hidden = false;
+    }
+  };
+  openers.forEach((b) => b.addEventListener('click', open));
+  dialog?.querySelector('[data-search-close]')?.addEventListener('click', () => dialog.close());
+  dialog?.addEventListener('click', (e) => { if (e.target === dialog) dialog.close(); });
+  document.addEventListener('keydown', (e) => {
+    const t = e.target as HTMLElement;
+    if (e.key === '/' && !dialog?.open && !/input|textarea|select/i.test(t.tagName) && !t.isContentEditable) { e.preventDefault(); open(); }
+  });
+</script>
+
+<style>
+  .srch-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.6rem;
+    height: 44px;
+    min-width: 0;
+    padding: 0 0.6rem 0 1rem;
+    border: 1.5px solid var(--line-strong);
+    border-radius: var(--radius-pill);
+    background: rgb(253 242 216 / 0.06);
+    font-family: var(--font-ui);
+    font-size: 0.95rem;
+    font-weight: 600;
+    color: var(--text-dim);
+    text-align: left;
+    transition: border-color 0.2s var(--ease), color 0.2s var(--ease), background-color 0.2s var(--ease);
+  }
+  .srch-btn:hover {
+    color: var(--cream);
+    border-color: var(--amber);
+    background: rgb(253 242 216 / 0.1);
+  }
+  .srch-btn__label {
+    flex: 1;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+  .srch-btn__kbd {
+    margin-left: auto;
+  }
+  .srch-btn__kbd {
+    font-family: var(--font-ui);
+    font-size: 0.7rem;
+    padding: 0.05rem 0.4rem;
+    border: 1px solid var(--line-strong);
+    border-radius: 4px;
+    color: var(--text-mute);
+  }
+  .srch {
+    width: min(720px, 94vw);
+    max-height: 82vh;
+    margin: 8vh auto auto;
+    padding: 0;
+    border: 1px solid var(--line-strong);
+    border-radius: var(--radius-l);
+    background: var(--indigo-850);
+    color: var(--cream);
+    box-shadow: 0 40px 80px -30px rgb(0 0 0 / 0.9);
+  }
+  .srch::backdrop {
+    background: rgb(5 2 15 / 0.7);
+    backdrop-filter: blur(4px);
+  }
+  .srch__panel {
+    padding: var(--space-m);
+  }
+  .srch__head {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: var(--space-s);
+  }
+  .srch__title {
+    font-family: var(--font-ui);
+    font-size: 0.75rem;
+    font-weight: 800;
+    letter-spacing: 0.16em;
+    text-transform: uppercase;
+    color: var(--amber);
+  }
+  .srch__close {
+    width: 40px;
+    height: 40px;
+    display: grid;
+    place-items: center;
+    border: 1px solid var(--line);
+    border-radius: var(--radius-s);
+    background: transparent;
+  }
+  .srch__note {
+    color: var(--text-dim);
+    font-size: 0.9rem;
+  }
+  .srch :global(#lfp-search) {
+    --pagefind-ui-scale: 0.9;
+    --pagefind-ui-primary: var(--crimson-text);
+    --pagefind-ui-text: var(--cream);
+    --pagefind-ui-background: var(--indigo-900);
+    --pagefind-ui-border: rgb(253 242 216 / 0.24);
+    --pagefind-ui-tag: var(--indigo-700);
+    --pagefind-ui-border-width: 1px;
+    --pagefind-ui-border-radius: 10px;
+    --pagefind-ui-font: var(--font-ui);
+  }
+  @media (max-width: 1180px) {
+    .srch-btn__kbd {
+      display: none;
+    }
+  }
+  @media (max-width: 1000px) {
+    .srch-btn {
+      min-width: 0;
+      padding: 0 0.85rem;
+    }
+    .srch-btn__label {
+      display: none;
+    }
+  }
+</style>

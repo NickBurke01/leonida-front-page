@@ -1,0 +1,21 @@
+{
+  "_help": "HOW TO ADD A CHARACTER: copy, rename (e.g. lucia-caminos.json), fill in, delete _help. Put story details in spoilerText and set spoiler: true - readers must click to reveal them.",
+  "name": "Character Name",
+  "role": "Protagonist",
+  "summary": "Who they are in one or two sentences, no spoilers.",
+  "bio": "Optional longer, spoiler-free description.",
+  "spoiler": true,
+  "spoilerText": "Story details that would spoil the game go here.",
+  "relatedCharacters": [
+    "other-character-file-name"
+  ],
+  "images": [
+    {
+      "src": "/images/characters/character-1.webp",
+      "alt": "Describe the image"
+    }
+  ],
+  "youtubeId": "AbCdEfGhIjK",
+  "confirmedIn": "rockstar",
+  "lastVerified": "2026-11-26"
+}

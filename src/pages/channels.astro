@@ -1,0 +1,139 @@
+---
+import BaseLayout from '~/layouts/BaseLayout.astro';
+import Breadcrumbs from '~/components/Breadcrumbs.astro';
+import FeaturedVideo from '~/components/FeaturedVideo.astro';
+import VideoFacade from '~/components/VideoFacade.astro';
+import EmptyVideo from '~/components/EmptyVideo.astro';
+import SubscribeButton from '~/components/SubscribeButton.astro';
+import { LONG, SHORTS } from '~/config/site';
+import { getTopShorts, embedUrl, formatViews } from '~/lib/youtube';
+import { breadcrumbs } from '~/lib/seo';
+
+const { shown } = await getTopShorts();
+const latestShort = shown[0];
+const crumbs = [{ name: 'Home', href: '/' }, { name: 'Channels', href: '/channels/' }];
+---
+<BaseLayout
+  title="Our Channels: Leonida Front Page & Leonida FP"
+  description="Two YouTube channels, one front page: Leonida Front Page for long-form GTA 6 guides and breakdowns, Leonida FP for the daily Shorts."
+  jsonLd={[breadcrumbs(crumbs)]}
+>
+  <section class="page-head">
+    <div class="wrap">
+      <Breadcrumbs items={crumbs} />
+      <h1>Two channels, one front page</h1>
+      <p class="page-head__lede">Shorts give you the headline. The main channel gives you the complete picture.</p>
+    </div>
+  </section>
+
+  <section class="section section--tight">
+    <div class="wrap chans">
+      <article class="chan chan--long" aria-labelledby="chan-long">
+        <header class="chan__head">
+          <img src="/brand/avatar-192.webp" alt="" width="64" height="64" />
+          <div>
+            <span class="kicker">{LONG.role}</span>
+            <h2 id="chan-long">{LONG.name}</h2>
+            <p class="chan__handle">{LONG.handle}</p>
+          </div>
+        </header>
+        <p class="chan__blurb">{LONG.blurb} Money methods, hidden secrets, the map and the gear worth having, plus the news that matters, all researched and shown on screen.</p>
+        <FeaturedVideo compact />
+        <div class="chan__cta">
+          <SubscribeButton channel={LONG} label="Subscribe to Leonida Front Page" />
+          <a class="chan__link" href={LONG.url} target="_blank" rel="noopener">Visit the channel →</a>
+        </div>
+      </article>
+
+      <article class="chan chan--shorts" aria-labelledby="chan-shorts">
+        <header class="chan__head">
+          <img src="/brand/avatar-192.webp" alt="" width="64" height="64" />
+          <div>
+            <span class="kicker">{SHORTS.role}</span>
+            <h2 id="chan-shorts">{SHORTS.name}</h2>
+            <p class="chan__handle">{SHORTS.handle}</p>
+          </div>
+        </header>
+        <p class="chan__blurb">{SHORTS.blurb} Quick tips, secrets and money tricks, every day.</p>
+        <div class="chan__short">
+          {latestShort ? (
+            <VideoFacade aspect="tall" embedSrc={embedUrl(latestShort.id)} title={latestShort.title.replace(/\s*#\w+/g, '').trim()} thumb={latestShort.thumbVertical ?? latestShort.thumb} thumbWidth={latestShort.thumbVertical ? 1080 : latestShort.thumbWidth} thumbHeight={latestShort.thumbVertical ? 1920 : latestShort.thumbHeight} badge={`Most watched · ${formatViews(latestShort.views)}`} />
+          ) : (
+            <EmptyVideo kind="short" />
+          )}
+        </div>
+        <div class="chan__cta">
+          <SubscribeButton channel={SHORTS} variant="secondary" label="Follow Leonida FP" />
+          <a class="chan__link" href={`${SHORTS.url}/shorts`} target="_blank" rel="noopener">See all Shorts →</a>
+        </div>
+      </article>
+    </div>
+  </section>
+</BaseLayout>
+
+<style>
+  .chans {
+    display: grid;
+    grid-template-columns: 1.6fr 1fr;
+    gap: var(--space-l);
+    align-items: start;
+  }
+  .chan {
+    display: grid;
+    gap: var(--space-m);
+    padding: clamp(1.25rem, 0.8rem + 2vw, 2.25rem);
+    border: 1px solid var(--line);
+    border-radius: var(--radius-l);
+    background: var(--surface);
+  }
+  .chan--long {
+    border-top: 3px solid var(--crimson);
+  }
+  .chan--shorts {
+    border-top: 3px solid var(--teal);
+  }
+  .chan__head {
+    display: flex;
+    align-items: center;
+    gap: var(--space-s);
+  }
+  .chan__head img {
+    border-radius: 50%;
+  }
+  .chan h2 {
+    font-size: var(--step-3);
+    margin-top: 0.25rem;
+  }
+  .chan__handle {
+    font-family: var(--font-ui);
+    font-size: 0.85rem;
+    color: var(--text-mute);
+  }
+  .chan__blurb {
+    color: var(--text-dim);
+  }
+  .chan__short {
+    max-width: 300px;
+  }
+  .chan__cta {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: var(--space-s);
+  }
+  .chan__link {
+    font-family: var(--font-ui);
+    font-size: 0.9rem;
+    font-weight: 600;
+    color: var(--text-dim);
+    text-decoration: none;
+  }
+  .chan__link:hover {
+    color: var(--cream);
+  }
+  @media (max-width: 900px) {
+    .chans {
+      grid-template-columns: 1fr;
+    }
+  }
+</style>

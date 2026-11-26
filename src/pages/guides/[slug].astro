@@ -1,0 +1,70 @@
+---
+/**
+ * One route for two kinds of page under /guides/:
+ *  - category pages: /guides/money/, /guides/secrets/ ...
+ *  - guide pages:    /guides/gta-6-money-guide/ ...
+ */
+import BaseLayout from '~/layouts/BaseLayout.astro';
+import Breadcrumbs from '~/components/Breadcrumbs.astro';
+import GuideHub from '~/components/GuideHub.astro';
+import Article from '~/components/Article.astro';
+import SubscribeBand from '~/components/SubscribeBand.astro';
+import { GUIDE_CATEGORIES, GUIDE_CATEGORY_KEYS, type GuideCategory } from '~/config/site';
+import { getGuides } from '~/lib/content';
+import { article, breadcrumbs, videoObject } from '~/lib/seo';
+import type { CollectionEntry } from 'astro:content';
+
+export async function getStaticPaths() {
+  const guides = await getGuides();
+  const clash = guides.find((g) => (GUIDE_CATEGORY_KEYS as string[]).includes(g.id));
+  if (clash) throw new Error(`The guide file "${clash.id}.md" has the same name as a category page. Rename the file.`);
+  return [
+    ...GUIDE_CATEGORY_KEYS.map((key) => ({ params: { slug: key }, props: { kind: 'category' as const, key } })),
+    ...guides.map((g) => ({ params: { slug: g.id }, props: { kind: 'guide' as const, entry: g } })),
+  ];
+}
+
+type Props =
+  | { kind: 'category'; key: GuideCategory }
+  | { kind: 'guide'; entry: CollectionEntry<'guides'> };
+
+const props = Astro.props;
+const all = await getGuides();
+---
+{props.kind === 'category' ? (() => {
+  const cat = GUIDE_CATEGORIES[props.key];
+  const list = all.filter((g) => g.data.category === props.key);
+  const crumbs = [{ name: 'Home', href: '/' }, { name: 'Guides', href: '/guides/' }, { name: cat.label, href: `/guides/${props.key}/` }];
+  return (
+    <BaseLayout kind="hub" title={cat.title} description={`${cat.intro} Leonida Front Page GTA 6 guides, each paired with a video.`.slice(0, 165)} jsonLd={[breadcrumbs(crumbs)]} noindex={list.every((g) => g.data.placeholder)}>
+      <section class="page-head">
+        <div class="wrap">
+          <Breadcrumbs items={crumbs} />
+          <h1>{cat.title}</h1>
+          <p class="page-head__lede">{cat.intro}</p>
+        </div>
+      </section>
+      <section class="section section--tight">
+        <div class="wrap">
+          <GuideHub guides={list} all={all} active={props.key} />
+        </div>
+      </section>
+      <SubscribeBand />
+    </BaseLayout>
+  );
+})() : (() => {
+  const g = props.entry;
+  const cat = GUIDE_CATEGORIES[g.data.category];
+  const href = `/guides/${g.id}/`;
+  const crumbs = [{ name: 'Home', href: '/' }, { name: 'Guides', href: '/guides/' }, { name: cat.label, href: `/guides/${g.data.category}/` }, { name: g.data.title, href }];
+  const related = [...all.filter((x) => x.id !== g.id && x.data.category === g.data.category), ...all.filter((x) => x.id !== g.id && x.data.category !== g.data.category)].slice(0, 3);
+  const image = g.data.image ?? `/images/placeholders/guide-${g.data.category}.webp`;
+  const ld: object[] = [breadcrumbs(crumbs), article({ title: g.data.title, description: g.data.description, href, image, date: g.data.date, updated: g.data.updated, section: cat.label })];
+  if (g.data.youtubeId) ld.push(videoObject({ id: g.data.youtubeId, title: g.data.title, description: g.data.description }));
+  return (
+    <BaseLayout kind="article" title={g.data.title} description={g.data.description} type="article" noindex={g.data.placeholder} jsonLd={ld} published={g.data.date} modified={g.data.updated}>
+      <Article entry={g} related={related} crumbs={crumbs} />
+      <SubscribeBand />
+    </BaseLayout>
+  );
+})()}

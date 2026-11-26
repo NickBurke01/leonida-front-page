@@ -1,0 +1,27 @@
+{
+  "name": "Sample Off-Roader",
+  "class": "off-road",
+  "manufacturer": "Sample",
+  "realLife": "Desert trophy truck",
+  "topSpeedMph": 118,
+  "price": 58000,
+  "location": "SAMPLE: replace with where you found it in-game",
+  "seats": 2,
+  "stats": {
+    "speed": 55,
+    "acceleration": 66,
+    "braking": 61,
+    "handling": 78
+  },
+  "tier": "A",
+  "images": [],
+  "faq": [
+    {
+      "q": "Where do you find the Sample Off-Roader?",
+      "a": "SAMPLE answer: replace with the confirmed location."
+    }
+  ],
+  "sample": true,
+  "confirmedIn": "not-confirmed",
+  "lastVerified": "2026-11-26"
+}

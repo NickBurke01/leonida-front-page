@@ -1,0 +1,64 @@
+---
+/** Shown on a database section before it has any entries. Honest, branded, and useful (signup). */
+import EmailSignup from '../EmailSignup.astro';
+interface Props {
+  noun: string;
+  source: string;
+}
+const { noun, source } = Astro.props;
+---
+<div class="dbe">
+  <div class="dbe__panel">
+    <span class="dbe__stamp">Opening soon</span>
+    <p class="dbe__title">The {noun} database is being filled in</p>
+    <p class="dbe__copy">Every entry is checked in-game before it goes up: real stats, real locations, our own footage. No guesses, no leaks. The first entries land with our first {noun} video.</p>
+  </div>
+  <EmailSignup variant="compact" title={`Get told when the ${noun} database opens`} copy="One email when it's live." source={source} />
+</div>
+
+<style>
+  .dbe {
+    display: grid;
+    grid-template-columns: 1.3fr 1fr;
+    gap: var(--space-m);
+    align-items: stretch;
+  }
+  .dbe__panel {
+    padding: clamp(1.5rem, 1rem + 2vw, 2.5rem);
+    border: 1px solid var(--line);
+    border-radius: var(--radius-l);
+    background:
+      linear-gradient(180deg, rgb(13 5 34 / 0.3), rgb(13 5 34 / 0.9)),
+      url('/brand/atmosphere-sun.webp') center top / cover no-repeat;
+  }
+  .dbe__stamp {
+    display: inline-block;
+    padding: 0.3rem 0.7rem;
+    background: var(--amber);
+    color: var(--ink);
+    font-family: var(--font-head);
+    font-weight: 800;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    border-radius: 3px;
+    transform: rotate(-3deg);
+  }
+  .dbe__title {
+    margin-top: var(--space-s);
+    font-family: var(--font-head);
+    font-weight: var(--head-weight);
+    text-transform: var(--head-transform);
+    font-size: var(--step-3);
+    line-height: 1.05;
+  }
+  .dbe__copy {
+    margin-top: 0.6rem;
+    color: var(--text-dim);
+    max-width: 52ch;
+  }
+  @media (max-width: 820px) {
+    .dbe {
+      grid-template-columns: 1fr;
+    }
+  }
+</style>

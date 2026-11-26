@@ -1,0 +1,27 @@
+{
+  "name": "Sample Grand Tourer",
+  "class": "sports",
+  "manufacturer": "Sample",
+  "realLife": "Front-engine luxury GT",
+  "topSpeedMph": 186,
+  "price": 640000,
+  "location": "SAMPLE: replace with where you found it in-game",
+  "seats": 2,
+  "stats": {
+    "speed": 86,
+    "acceleration": 80,
+    "braking": 74,
+    "handling": 82
+  },
+  "tier": "A",
+  "images": [],
+  "faq": [
+    {
+      "q": "Where do you find the Sample Grand Tourer?",
+      "a": "SAMPLE answer: replace with the confirmed location."
+    }
+  ],
+  "sample": true,
+  "confirmedIn": "not-confirmed",
+  "lastVerified": "2026-11-26"
+}

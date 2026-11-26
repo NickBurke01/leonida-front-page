@@ -1,0 +1,31 @@
+{
+  "name": "leonida-front-page",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Official website of Leonida Front Page: GTA 6 guides, secrets and news.",
+  "type": "module",
+  "scripts": {
+    "dev": "astro dev",
+    "dev:live": "cross-env LFP_FIXTURES=1 astro dev",
+    "build": "astro build && pagefind --site dist",
+    "build:live": "cross-env LFP_FIXTURES=1 astro build && pagefind --site dist",
+    "preview": "astro preview",
+    "check": "astro check",
+    "brand": "node scripts/make-brand-assets.mjs"
+  },
+  "engines": {
+    "node": ">=22"
+  },
+  "dependencies": {
+    "@astrojs/sitemap": "^3.7.6",
+    "astro": "^7.4.13",
+    "fast-xml-parser": "^5.12.1",
+    "sharp": "^0.35.5"
+  },
+  "devDependencies": {
+    "@astrojs/check": "^0.9.12",
+    "cross-env": "^10.1.0",
+    "pagefind": "^1.6.0",
+    "typescript": "^6.0.3"
+  }
+}

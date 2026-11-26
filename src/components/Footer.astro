@@ -1,0 +1,219 @@
+---
+import { SITE, LONG, SHORTS, GUIDE_CATEGORIES } from '~/config/site';
+import Logo from './Logo.astro';
+import SubscribeButton from './SubscribeButton.astro';
+import Icon from './Icon.astro';
+const year = new Date().getFullYear();
+---
+<footer class="ft">
+  <div class="wrap">
+    <div class="rule-double"></div>
+    <div class="ft__grid">
+      <div class="ft__brand">
+        <Logo size="m" />
+        <p class="ft__tagline">{SITE.tagline}</p>
+        <div class="ft__channels">
+          {[LONG, SHORTS].map((c) => (
+            <div class="ft__channel">
+              <img src="/brand/avatar-96.webp" alt="" width="40" height="40" loading="lazy" />
+              <div>
+                <a class="ft__cname" href={c.url} target="_blank" rel="noopener">{c.name}</a>
+                <p class="ft__crole">{c.role}</p>
+              </div>
+              <SubscribeButton channel={c} variant="compact" label={c.key === 'long' ? 'Subscribe' : 'Follow'} />
+            </div>
+          ))}
+        </div>
+      </div>
+      <nav class="ft__col" aria-label="Guides">
+        <p class="ft__head">Guides</p>
+        <ul>
+          {Object.entries(GUIDE_CATEGORIES).map(([key, c]) => (
+            <li><a href={`/guides/${key}/`}>{c.label}</a></li>
+          ))}
+        </ul>
+      </nav>
+      <nav class="ft__col" aria-label="Database">
+        <p class="ft__head">Database</p>
+        <ul>
+          <li><a href="/vehicles/">Vehicles</a></li>
+          <li><a href="/weapons/">Weapons</a></li>
+          <li><a href="/characters/">Characters</a></li>
+          <li><a href="/missions/">Missions</a></li>
+          <li><a href="/tier-lists/">Tier lists</a></li>
+          <li><a href="/checklist/">100% Checklist</a></li>
+        </ul>
+      </nav>
+      <nav class="ft__col" aria-label="Site">
+        <p class="ft__head">Leonida Front Page</p>
+        <ul>
+          <li><a href="/news/">News</a></li>
+          <li><a href="/channels/">Channels</a></li>
+          <li><a href="/about/">About</a></li>
+          <li><a href="/#newsletter">The Morning Edition</a></li>
+          <li><a href="/privacy/">Privacy</a></li>
+        </ul>
+        <p class="ft__head ft__head--follow">Follow</p>
+        <div class="ft__social">
+          <a href={LONG.url} target="_blank" rel="noopener" aria-label={`${LONG.name} on YouTube`}><Icon name="video" size={20} /><span>YouTube</span></a>
+          <a href={SHORTS.url} target="_blank" rel="noopener" aria-label={`${SHORTS.name} Shorts on YouTube`}><Icon name="play" size={18} /><span>Shorts</span></a>
+          {SITE.social.tiktok && <a href={SITE.social.tiktok} target="_blank" rel="noopener" aria-label="TikTok"><Icon name="tiktok" size={18} /><span>TikTok</span></a>}
+          {SITE.social.x && <a href={SITE.social.x} target="_blank" rel="noopener" aria-label="X"><Icon name="x" size={18} /><span>X</span></a>}
+          {SITE.contactEmail && <a href={`mailto:${SITE.contactEmail}`}><Icon name="mail" size={18} /><span>Email</span></a>}
+        </div>
+      </nav>
+    </div>
+    <div class="ft__legal">
+      <p>{SITE.disclaimer}</p>
+      <p>© {year} {SITE.name}</p>
+    </div>
+  </div>
+</footer>
+
+<style>
+  .ft {
+    margin-top: var(--space-2xl);
+    padding-bottom: var(--space-l);
+    background: linear-gradient(180deg, transparent, var(--bg-deep) 40%);
+  }
+  .ft__grid {
+    display: grid;
+    grid-template-columns: 1.6fr 1fr 1fr 1fr;
+    gap: var(--space-xl);
+    padding-block: var(--space-xl);
+  }
+  .ft__head--follow {
+    margin-top: var(--space-m);
+  }
+  .ft__social {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.5rem;
+  }
+  .ft__social a {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.4rem;
+    min-height: 38px;
+    padding: 0 0.75rem;
+    border: 1px solid var(--line-strong);
+    border-radius: var(--radius-pill);
+    font-family: var(--font-ui);
+    font-size: 0.84rem;
+    color: var(--text-dim);
+    text-decoration: none;
+  }
+  .ft__social a:hover {
+    color: var(--cream);
+    border-color: var(--crimson);
+    text-decoration: none;
+  }
+  .ft__tagline {
+    margin-top: var(--space-s);
+    color: var(--text-dim);
+    max-width: 32ch;
+  }
+  .ft__channels {
+    display: grid;
+    gap: var(--space-s);
+    margin-top: var(--space-m);
+    max-width: 440px;
+  }
+  .ft__channel {
+    display: grid;
+    grid-template-columns: auto 1fr auto;
+    align-items: center;
+    gap: 0.8rem;
+    padding: 0.7rem 0.8rem;
+    border: 1px solid var(--line);
+    border-radius: var(--radius-m);
+    background: rgb(253 242 216 / 0.02);
+  }
+  .ft__channel img {
+    border-radius: 50%;
+  }
+  .ft__cname {
+    font-family: var(--font-ui);
+    font-weight: 700;
+    text-decoration: none;
+  }
+  .ft__cname:hover {
+    text-decoration: underline;
+  }
+  .ft__crole {
+    font-family: var(--font-ui);
+    font-size: 0.78rem;
+    color: var(--text-mute);
+  }
+  .ft__head {
+    font-family: var(--font-ui);
+    font-size: 0.75rem;
+    font-weight: 700;
+    letter-spacing: 0.16em;
+    text-transform: uppercase;
+    color: var(--amber);
+    margin-bottom: var(--space-s);
+  }
+  .ft__col ul {
+    list-style: none;
+    padding: 0;
+    display: grid;
+    gap: 0.55rem;
+  }
+  .ft__col a {
+    color: var(--text-dim);
+    text-decoration: none;
+    font-family: var(--font-ui);
+    font-size: 0.95rem;
+  }
+  .ft__col a:hover {
+    color: var(--cream);
+    text-decoration: underline;
+  }
+  .ft__contact {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.8rem;
+    margin-top: var(--space-m);
+  }
+  .ft__contact a {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.4rem;
+  }
+  .ft__legal {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: space-between;
+    gap: var(--space-s);
+    padding-top: var(--space-m);
+    border-top: 1px solid var(--line);
+    font-family: var(--font-ui);
+    font-size: 0.8rem;
+    color: var(--text-mute);
+  }
+  @media (max-width: 1100px) {
+    .ft__grid {
+      grid-template-columns: repeat(3, 1fr);
+    }
+    .ft__brand {
+      grid-column: 1 / -1;
+    }
+  }
+  @media (max-width: 640px) {
+    .ft__grid {
+      grid-template-columns: 1fr 1fr;
+    }
+    .ft__brand {
+      grid-column: 1 / -1;
+    }
+  }
+  @media (max-width: 480px) {
+    .ft__channel {
+      grid-template-columns: auto 1fr;
+    }
+    .ft__channel :global(.sub) {
+      grid-column: 1 / -1;
+    }
+  }
+</style>

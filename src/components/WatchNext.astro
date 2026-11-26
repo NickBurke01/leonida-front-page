@@ -1,0 +1,130 @@
+---
+/** Compact "Watch next" list: latest long-form first, then Shorts. Used in sidebars. */
+import { getChannels, getTopShorts, formatViews } from '~/lib/youtube';
+import { LONG, SHORTS } from '~/config/site';
+import SubscribeButton from './SubscribeButton.astro';
+import Thumb from './Thumb.astro';
+import { formatDate } from '~/lib/format';
+
+interface Props {
+  exclude?: string;
+}
+const { exclude } = Astro.props;
+const { long } = await getChannels();
+const { shown } = await getTopShorts();
+type Item = { id: string; title: string; url: string; kind: 'Video' | 'Short'; thumb: string; thumbWidth: number; thumbHeight: number; thumbVertical?: string; note: string };
+const items: Item[] = [
+  ...long.longVideos.filter((v) => v.id !== exclude).slice(0, 3).map((v) => ({ ...v, kind: 'Video' as const, note: formatDate(v.published) })),
+  ...shown.slice(0, 3).map((v) => ({ ...v, kind: 'Short' as const, note: formatViews(v.views) })),
+].slice(0, 5);
+const clean = (t: string) => t.replace(/\s*#\w+/g, '').trim();
+---
+<aside class="wn" aria-labelledby="wn-title">
+  <p class="wn__head" id="wn-title">Watch next</p>
+  {items.length ? (
+    <ul class="wn__list">
+      {items.map((v) => (
+        <li>
+          <a class="wn__item" href={v.url} target="_blank" rel="noopener">
+            <span class="wn__thumb">
+              {v.kind === 'Short' && v.thumbVertical
+                ? <Thumb src={v.thumbVertical} srcWidth={1080} srcHeight={1920} width={96} position="center 30%" />
+                : <Thumb src={v.thumb} srcWidth={v.thumbWidth} srcHeight={v.thumbHeight} width={160} />}
+            </span>
+            <span class="wn__text">
+              <span class={v.kind === 'Short' ? 'pill pill--teal' : 'pill'}>{v.kind === 'Short' ? 'Top Short' : 'Video'}</span>
+              <span class="wn__title">{clean(v.title)}</span>
+              <span class="wn__date">{v.note}</span>
+            </span>
+          </a>
+        </li>
+      ))}
+    </ul>
+  ) : (
+    <p class="wn__empty">The first long-form edition is on the way. Subscribe and it lands in your feed the day it's out.</p>
+  )}
+  <div class="wn__subs">
+    <SubscribeButton channel={LONG} label="Subscribe" />
+    <SubscribeButton channel={SHORTS} variant="secondary" label="Daily Shorts" />
+  </div>
+</aside>
+
+<style>
+  .wn {
+    padding: var(--space-m);
+    border: 1px solid var(--line);
+    border-radius: var(--radius-l);
+    background: var(--surface);
+  }
+  .wn__head {
+    font-family: var(--font-ui);
+    font-size: 0.75rem;
+    font-weight: 800;
+    letter-spacing: 0.16em;
+    text-transform: uppercase;
+    color: var(--amber);
+    margin-bottom: var(--space-s);
+  }
+  .wn__list {
+    list-style: none;
+    padding: 0;
+    display: grid;
+    gap: 0.4rem;
+  }
+  .wn__item {
+    display: grid;
+    grid-template-columns: 96px 1fr;
+    gap: 0.75rem;
+    padding: 0.45rem;
+    margin-inline: -0.45rem;
+    border-radius: var(--radius-m);
+    text-decoration: none;
+    transition: background-color 0.2s var(--ease);
+  }
+  .wn__item:hover {
+    background: var(--surface-2);
+  }
+  .wn__thumb {
+    aspect-ratio: 16 / 10;
+    border-radius: 8px;
+    overflow: hidden;
+    background: var(--indigo-950);
+  }
+  .wn__thumb :global(img) {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+  }
+  .wn__text {
+    display: grid;
+    gap: 0.25rem;
+    align-content: start;
+    justify-items: start;
+  }
+  .wn__title {
+    font-family: var(--font-ui);
+    font-size: 0.86rem;
+    font-weight: 600;
+    line-height: 1.3;
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+  }
+  .wn__date {
+    font-family: var(--font-ui);
+    font-size: 0.74rem;
+    color: var(--text-mute);
+  }
+  .wn__empty {
+    color: var(--text-dim);
+    font-size: 0.92rem;
+  }
+  .wn__subs {
+    display: grid;
+    gap: 0.6rem;
+    margin-top: var(--space-m);
+    padding-top: var(--space-m);
+    border-top: 1px solid var(--line);
+  }
+</style>

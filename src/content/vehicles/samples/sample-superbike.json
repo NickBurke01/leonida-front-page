@@ -1,0 +1,27 @@
+{
+  "name": "Sample Superbike",
+  "class": "motorcycles",
+  "manufacturer": "Sample",
+  "realLife": "Litre-class sport bike",
+  "topSpeedMph": 198,
+  "price": 120000,
+  "location": "SAMPLE: replace with where you found it in-game",
+  "seats": 2,
+  "stats": {
+    "speed": 92,
+    "acceleration": 97,
+    "braking": 76,
+    "handling": 70
+  },
+  "tier": "S",
+  "images": [],
+  "faq": [
+    {
+      "q": "Where do you find the Sample Superbike?",
+      "a": "SAMPLE answer: replace with the confirmed location."
+    }
+  ],
+  "sample": true,
+  "confirmedIn": "not-confirmed",
+  "lastVerified": "2026-11-26"
+}

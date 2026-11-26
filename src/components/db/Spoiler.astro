@@ -1,0 +1,58 @@
+---
+/** Click-to-reveal spoiler block. Works without JavaScript (native <details>). */
+interface Props {
+  label?: string;
+}
+const { label = 'Story spoilers' } = Astro.props;
+---
+<details class="sp">
+  <summary>
+    <span class="sp__icon" aria-hidden="true">!</span>
+    <span><strong>{label}</strong> · tap to reveal</span>
+  </summary>
+  <div class="sp__body">
+    <slot />
+  </div>
+</details>
+
+<style>
+  .sp {
+    border: 1px dashed rgb(250 184 60 / 0.5);
+    border-radius: var(--radius-m);
+    background: rgb(250 184 60 / 0.05);
+  }
+  .sp summary {
+    display: flex;
+    align-items: center;
+    gap: 0.7rem;
+    padding: 0.85rem 1rem;
+    cursor: pointer;
+    list-style: none;
+    font-family: var(--font-ui);
+    font-size: 0.92rem;
+    color: var(--text-dim);
+  }
+  .sp summary::-webkit-details-marker {
+    display: none;
+  }
+  .sp summary strong {
+    color: var(--amber);
+  }
+  .sp__icon {
+    display: grid;
+    place-items: center;
+    width: 24px;
+    height: 24px;
+    border-radius: 50%;
+    background: var(--amber);
+    color: var(--ink);
+    font-weight: 900;
+    font-size: 0.85rem;
+  }
+  .sp[open] summary {
+    border-bottom: 1px dashed rgb(250 184 60 / 0.35);
+  }
+  .sp__body {
+    padding: 1rem 1.1rem 1.2rem;
+  }
+</style>

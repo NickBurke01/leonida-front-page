@@ -1,0 +1,35 @@
+---
+import BaseLayout from '~/layouts/BaseLayout.astro';
+import DbEntry from '~/components/db/DbEntry.astro';
+import SubscribeBand from '~/components/SubscribeBand.astro';
+import { getWeapons, related, weaponAnswer, type Weapon } from '~/lib/database';
+import { breadcrumbs, faqPage, videoObject } from '~/lib/seo';
+
+export async function getStaticPaths() {
+  const all = await getWeapons();
+  return all.filter((w) => w.id !== 'compare').map((w) => ({ params: { slug: w.id }, props: { entry: w } }));
+}
+interface Props {
+  entry: Weapon;
+}
+const { entry } = Astro.props;
+const all = await getWeapons();
+const d = entry.data;
+const href = `/weapons/${entry.id}/`;
+const crumbs = [{ name: 'Home', href: '/' }, { name: 'Weapons', href: '/weapons/' }, { name: d.name, href }];
+const ld: object[] = [breadcrumbs(crumbs)];
+if (d.faq.length) ld.push(faqPage(d.faq));
+if (d.youtubeId) ld.push(videoObject({ id: d.youtubeId, title: `${d.name} in GTA 6`, description: weaponAnswer(d) }));
+---
+<BaseLayout kind="entry"
+  title={`${d.name} in GTA 6: Damage, Location & Attachments`}
+  description={weaponAnswer(d).slice(0, 165)}
+  image={d.images[0]?.src}
+  type="article"
+  noindex={d.sample} search={!d.sample}
+  jsonLd={ld}
+  modified={d.lastVerified}
+>
+  <DbEntry kind="weapon" entry={entry} related={related(all, entry, 'category', 6)} />
+  <SubscribeBand />
+</BaseLayout>

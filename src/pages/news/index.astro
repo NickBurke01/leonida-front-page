@@ -1,0 +1,57 @@
+---
+import BaseLayout from '~/layouts/BaseLayout.astro';
+import Breadcrumbs from '~/components/Breadcrumbs.astro';
+import GuideCard from '~/components/GuideCard.astro';
+import SubscribeBand from '~/components/SubscribeBand.astro';
+import { getNews } from '~/lib/content';
+import { breadcrumbs } from '~/lib/seo';
+
+const news = await getNews();
+const [lead, ...rest] = news;
+const crumbs = [{ name: 'Home', href: '/' }, { name: 'News', href: '/news/' }];
+---
+<BaseLayout kind="hub"
+  title="GTA 6 News, Updates & Theories"
+  description="GTA 6 news from Leonida Front Page: updates explained, theories checked against the evidence, and breakdowns of what each change means for you."
+  jsonLd={[breadcrumbs(crumbs)]}
+  noindex={news.every((n) => n.data.placeholder)}
+>
+  <section class="page-head">
+    <div class="wrap">
+      <Breadcrumbs items={crumbs} />
+      <h1>News Desk</h1>
+      <p class="page-head__lede">Updates explained, theories checked against the evidence, and what each change means for your money, gear and progress. Confirmed, reported or rumour: always labelled.</p>
+    </div>
+  </section>
+  <section class="section section--tight">
+    <div class="wrap">
+      {lead ? (
+        <div class="news">
+          <div class="news__lead"><GuideCard entry={lead} layout="lead" headingLevel="h2" /></div>
+          {rest.length > 0 && (
+            <div class="news__list">
+              {rest.map((n) => <GuideCard entry={n} layout="row" headingLevel="h2" />)}
+            </div>
+          )}
+        </div>
+      ) : (
+        <p class="news__empty">The news desk opens with the first edition.</p>
+      )}
+    </div>
+  </section>
+  <SubscribeBand />
+</BaseLayout>
+
+<style>
+  .news {
+    display: grid;
+    gap: var(--space-l);
+  }
+  .news__list {
+    display: grid;
+    gap: var(--space-m);
+  }
+  .news__empty {
+    color: var(--text-dim);
+  }
+</style>

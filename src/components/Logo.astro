@@ -1,0 +1,80 @@
+---
+/**
+ * The brand mark: the crimson script "Leonida Front Page" on a torn cream paper label,
+ * taken from the channel banner. `size` controls the label width.
+ */
+interface Props {
+  size?: 'xl' | 'l' | 'm' | 's';
+  href?: string | null;
+  eager?: boolean;
+}
+const { size = 'l', href = '/', eager = false } = Astro.props;
+
+// Torn-paper edges: a fixed, hand-tuned jagged polygon (top and bottom edges).
+const top = [0, 0.6, 1.4, 0.4, 1.1, 0.2, 0.9, 1.6, 0.5, 1.2, 0.3, 1.0, 0.1, 0.8, 1.5, 0.4, 1.1, 0.6, 0.2, 0.9, 1.3];
+const bottom = [1.2, 0.3, 1.0, 1.7, 0.6, 1.3, 0.2, 1.1, 0.5, 1.6, 0.4, 1.4, 0.8, 0.1, 1.2, 0.6, 1.5, 0.3, 1.0, 0.7, 1.4];
+const n = top.length - 1;
+const pts = [
+  ...top.map((v, i) => `${(i / n) * 100}% ${v * 3}px`),
+  ...bottom.map((v, i) => `${100 - (i / n) * 100}% calc(100% - ${v * 3}px)`),
+];
+const clip = `polygon(${pts.join(', ')})`;
+const Tag = href ? 'a' : 'div';
+---
+<Tag class:list={['logo', `logo--${size}`]} href={href ?? undefined} aria-label={href ? 'Leonida Front Page, home' : undefined}>
+  <span class="logo__paper" style={`clip-path:${clip}`}>
+    <img
+      src="/brand/wordmark.webp"
+      alt="Leonida Front Page"
+      width="1000"
+      height="124"
+      loading={eager ? 'eager' : 'lazy'}
+      fetchpriority={eager ? 'high' : undefined}
+      decoding="async"
+    />
+  </span>
+</Tag>
+
+<style>
+  .logo {
+    display: inline-block;
+    text-decoration: none;
+    line-height: 0;
+    transform: rotate(-1.2deg);
+    filter: drop-shadow(0 8px 18px rgb(0 0 0 / 0.45));
+    transition: transform 0.3s var(--ease);
+  }
+  a.logo:hover {
+    transform: rotate(-0.4deg) scale(1.01);
+  }
+  .logo__paper {
+    display: block;
+    background:
+      radial-gradient(120% 140% at 30% 20%, #fffaf0 0%, #fdf2d8 55%, #f1e2bf 100%);
+    padding: var(--pad-y) var(--pad-x);
+  }
+  .logo img {
+    width: 100%;
+    height: auto;
+  }
+  .logo--xl {
+    width: min(560px, 82vw);
+    --pad-y: 0.85rem;
+    --pad-x: 1.4rem;
+  }
+  .logo--l {
+    width: min(400px, 74vw);
+    --pad-y: 0.65rem;
+    --pad-x: 1.05rem;
+  }
+  .logo--m {
+    width: 250px;
+    --pad-y: 0.45rem;
+    --pad-x: 0.75rem;
+  }
+  .logo--s {
+    width: 168px;
+    --pad-y: 0.32rem;
+    --pad-x: 0.5rem;
+  }
+</style>

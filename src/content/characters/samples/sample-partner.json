@@ -1,0 +1,13 @@
+{
+  "name": "Sample Partner",
+  "role": "Protagonist (sample)",
+  "summary": "SAMPLE: the second lead, introduced without spoilers.",
+  "spoiler": false,
+  "relatedCharacters": [
+    "sample-lead"
+  ],
+  "images": [],
+  "sample": true,
+  "confirmedIn": "not-confirmed",
+  "lastVerified": "2026-11-26"
+}

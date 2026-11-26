@@ -1,0 +1,129 @@
+---
+/** Branded "coming soon" panel, the same size as the player it stands in for. */
+import { LONG, SHORTS, SITE } from '~/config/site';
+import SubscribeButton from './SubscribeButton.astro';
+
+interface Props {
+  kind: 'long' | 'short';
+  compact?: boolean;
+  class?: string;
+}
+const { kind, compact = false, class: cls } = Astro.props;
+---
+{kind === 'long' ? (
+  <div class:list={['ev', 'ev--wide', { 'ev--compact': compact }, cls]}>
+    <div class="ev__art" aria-hidden="true"></div>
+    <div class="ev__body">
+      <span class="ev__stamp">Extra!</span>
+      <p class="ev__kicker">Leonida Front Page</p>
+      <p class="ev__title">First edition drops soon</p>
+      {!compact && <p class="ev__copy">{SITE.tagline}</p>}
+      <SubscribeButton channel={LONG} variant={compact ? 'compact' : 'primary'} label="Subscribe so you catch it first" />
+    </div>
+  </div>
+) : (
+  <div class:list={['ev', 'ev--tall', cls]}>
+    <div class="ev__art" aria-hidden="true"></div>
+    <div class="ev__body">
+      <p class="ev__kicker">Leonida FP</p>
+      <p class="ev__title">Daily Shorts start soon</p>
+      <SubscribeButton channel={SHORTS} variant="compact" label="Follow" />
+    </div>
+  </div>
+)}
+
+<style>
+  .ev {
+    position: relative;
+    overflow: hidden;
+    display: grid;
+    place-items: center;
+    text-align: center;
+    border-radius: var(--radius-l);
+    background: var(--indigo-850);
+    border: 1px solid var(--line);
+    isolation: isolate;
+  }
+  .ev--wide {
+    aspect-ratio: 16 / 9;
+  }
+  .ev--tall {
+    aspect-ratio: 9 / 16;
+    border-radius: var(--radius-m);
+  }
+  .ev__art {
+    position: absolute;
+    inset: 0;
+    z-index: -1;
+    background:
+      linear-gradient(180deg, rgb(13 5 34 / 0.2), rgb(13 5 34 / 0.92) 78%),
+      url('/brand/atmosphere-sun.webp') center top / cover no-repeat;
+  }
+  .ev--tall .ev__art {
+    background:
+      linear-gradient(180deg, rgb(13 5 34 / 0.15), rgb(13 5 34 / 0.9) 70%),
+      radial-gradient(70% 45% at 50% 22%, rgb(250 184 60 / 0.55), rgb(231 89 79 / 0.3) 45%, transparent 75%),
+      var(--indigo-850);
+  }
+  .ev__body {
+    display: grid;
+    justify-items: center;
+    gap: 0.6rem;
+    padding: var(--space-m);
+    max-width: 34rem;
+  }
+  .ev__stamp {
+    padding: 0.3rem 0.75rem;
+    background: var(--amber);
+    color: var(--ink);
+    font-family: var(--font-head);
+    font-weight: 800;
+    font-size: 1.05rem;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    transform: rotate(-4deg);
+    border-radius: 3px;
+    box-shadow: 0 6px 18px -6px rgb(0 0 0 / 0.6);
+  }
+  .ev__kicker {
+    font-family: var(--font-ui);
+    font-size: 0.72rem;
+    font-weight: 700;
+    letter-spacing: 0.18em;
+    text-transform: uppercase;
+    color: var(--amber);
+  }
+  .ev__title {
+    font-family: var(--font-head);
+    font-weight: var(--head-weight);
+    text-transform: var(--head-transform);
+    letter-spacing: var(--head-tracking);
+    font-size: var(--step-4);
+    line-height: 1;
+    text-wrap: balance;
+  }
+  .ev--tall .ev__title {
+    font-size: 1.35rem;
+  }
+  .ev--compact .ev__title {
+    font-size: var(--step-2);
+  }
+  .ev__copy {
+    color: var(--text-dim);
+    margin-bottom: 0.4rem;
+  }
+  /* On phones a 16:9 box is too short for the message and button, so let it grow. */
+  @media (max-width: 640px) {
+    .ev--wide {
+      aspect-ratio: auto;
+      min-height: 56.25vw;
+      padding-block: var(--space-l);
+    }
+    .ev--wide .ev__copy {
+      display: none;
+    }
+    .ev--wide .ev__title {
+      font-size: var(--step-3);
+    }
+  }
+</style>

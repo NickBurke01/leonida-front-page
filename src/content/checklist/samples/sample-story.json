@@ -1,0 +1,22 @@
+{
+  "title": "Story Missions (sample)",
+  "order": 1,
+  "description": "SAMPLE group.",
+  "items": [
+    {
+      "id": "sample-story-1",
+      "label": "Sample: The First Job",
+      "link": "/missions/sample-first-job/"
+    },
+    {
+      "id": "sample-story-2",
+      "label": "Sample: The Getaway",
+      "link": "/missions/sample-getaway/"
+    },
+    {
+      "id": "sample-story-3",
+      "label": "Sample mission three"
+    }
+  ],
+  "sample": true
+}

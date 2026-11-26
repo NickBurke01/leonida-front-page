@@ -1,0 +1,116 @@
+---
+import BaseLayout from '~/layouts/BaseLayout.astro';
+import LeadStory from '~/components/home/LeadStory.astro';
+import SecondaryStories from '~/components/home/SecondaryStories.astro';
+import LatestFeed from '~/components/home/LatestFeed.astro';
+import Sidebar from '~/components/home/Sidebar.astro';
+import ShortsStrip from '~/components/ShortsStrip.astro';
+import SectionTiles from '~/components/SectionTiles.astro';
+import GuideCard from '~/components/GuideCard.astro';
+import EmailSignup from '~/components/EmailSignup.astro';
+import SubscribeBand from '~/components/SubscribeBand.astro';
+import { getFrontPage } from '~/lib/home';
+import { getHomeGuides } from '~/lib/content';
+
+const { lead, secondary, latest, mostWatched } = await getFrontPage();
+const guides = await getHomeGuides(4);
+---
+<BaseLayout
+  kind="home"
+  title="Leonida Front Page: GTA 6 Guides, Secrets & News"
+  description="The complete picture on GTA 6: money guides, hidden secrets and easter eggs, map, vehicle and weapon guides, plus the GTA VI news that matters. Long-form breakdowns and daily Shorts."
+  masthead="home"
+>
+  <!-- A1: the front page -->
+  <section class="front" id="front" aria-label="Front page">
+    <div class="front__glow" aria-hidden="true"></div>
+    <div class="wrap front__grid">
+      {lead && <LeadStory story={lead} />}
+      {secondary.length > 0 && <SecondaryStories stories={secondary} />}
+    </div>
+  </section>
+
+  <!-- A2: Shorts rail -->
+  <div id="shorts"><ShortsStrip /></div>
+
+  <!-- A3: Latest + sidebar -->
+  <section class="section" aria-label="Latest and most watched">
+    <div class="wrap latest__grid">
+      <LatestFeed stories={latest} />
+      <Sidebar mostWatched={mostWatched} />
+    </div>
+  </section>
+
+  <!-- B1: sections -->
+  <SectionTiles />
+
+  <!-- B2: guides -->
+  {guides.length > 0 && (
+    <section class="section" id="guides" aria-labelledby="guides-heading">
+      <div class="wrap">
+        <div class="section-head">
+          <div>
+            <span class="kicker">Guides & secrets</span>
+            <h2 id="guides-heading">Latest guides</h2>
+          </div>
+          <a class="more" href="/guides/">All guides</a>
+        </div>
+        <div class="grid-cards">
+          {guides.map((g) => <div data-reveal><GuideCard entry={g} /></div>)}
+        </div>
+      </div>
+    </section>
+  )}
+
+  <!-- C1: the Morning Edition -->
+  <section class="section" id="newsletter" aria-label="Newsletter">
+    <div class="wrap" data-reveal>
+      <EmailSignup
+        source="home"
+        title="Get the Morning Edition"
+        copy="The biggest GTA 6 guides, secrets and news in one email, only when it's worth opening. An audience we own, not just an algorithm."
+      />
+    </div>
+  </section>
+
+  <SubscribeBand />
+</BaseLayout>
+
+<style>
+  .front {
+    position: relative;
+    padding-block: var(--space-l) var(--space-xl);
+    isolation: isolate;
+  }
+  .front__glow {
+    position: absolute;
+    inset: 0 0 auto;
+    height: 560px;
+    z-index: -1;
+    background:
+      radial-gradient(60% 70% at 30% 0%, rgb(154 32 101 / 0.26), transparent 70%),
+      radial-gradient(40% 60% at 80% 10%, rgb(231 89 79 / 0.14), transparent 70%);
+    pointer-events: none;
+  }
+  .front__grid {
+    display: grid;
+    grid-template-columns: minmax(0, 1.85fr) minmax(0, 1fr);
+    gap: clamp(1.5rem, 1rem + 2.5vw, 3rem);
+    align-items: start;
+  }
+  .latest__grid {
+    display: grid;
+    grid-template-columns: minmax(0, 1.85fr) minmax(0, 1fr);
+    gap: clamp(1.5rem, 1rem + 2.5vw, 3rem);
+    align-items: start;
+  }
+  #shorts :global(.shorts) {
+    padding-top: var(--space-l);
+  }
+  @media (max-width: 980px) {
+    .front__grid,
+    .latest__grid {
+      grid-template-columns: 1fr;
+    }
+  }
+</style>

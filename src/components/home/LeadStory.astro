@@ -1,0 +1,208 @@
+---
+/**
+ * The front-page lead story: big picture, headline, date and a Watch/Read button.
+ * Long-form video once there is one; until then the most-watched Short (shown in a wide frame).
+ */
+import { getImage } from 'astro:assets';
+import type { Story } from '~/lib/home';
+import { embedUrl, embedWithPlaylist, formatViews, getChannels } from '~/lib/youtube';
+import { LONG, SHORTS, subscribeUrl } from '~/config/site';
+import { formatDate } from '~/lib/format';
+import VideoFacade from '../VideoFacade.astro';
+import Icon from '../Icon.astro';
+
+interface Props {
+  story: Story;
+}
+const { story } = Astro.props;
+const { long } = await getChannels();
+const isShort = story.kind === 'short';
+const isVideo = story.kind === 'video';
+const vertical = story.thumbVertical;
+let backdrop = vertical ?? story.thumb;
+try {
+  backdrop = (await getImage({ src: backdrop, width: 320, format: 'webp', quality: 50, ...(vertical ? { height: 569 } : { height: Math.round((320 * story.thumbHeight) / story.thumbWidth) }) })).src;
+} catch {
+  /* keep the original */
+}
+const kicker = isVideo ? 'Latest edition' : isShort ? 'Most watched this week' : 'Lead story';
+const channel = isVideo ? LONG : SHORTS;
+---
+<article class:list={['lead', `lead--${story.kind}`]} aria-labelledby="lead-title">
+  <div class="lead__media">
+    {isShort && story.videoId ? (
+      <div class="lead__frame">
+        <div class="lead__backdrop" style={`background-image:url('${backdrop}')`} aria-hidden="true"></div>
+        <VideoFacade
+          id="lead-player"
+          aspect="tall"
+          class="lead__short"
+          embedSrc={embedUrl(story.videoId, { loop: '1', playlist: story.videoId })}
+          title={story.title}
+          thumb={vertical ?? story.thumb}
+          thumbWidth={vertical ? 1080 : story.thumbWidth}
+          thumbHeight={vertical ? 1920 : story.thumbHeight}
+          eager
+        />
+        <span class="lead__stamp">#1</span>
+      </div>
+    ) : isVideo && story.videoId ? (
+      <VideoFacade
+        id="lead-player"
+        embedSrc={long.playlist ? embedWithPlaylist(story.videoId, long.playlist) : embedUrl(story.videoId)}
+        title={story.title}
+        thumb={story.thumb}
+        thumbWidth={story.thumbWidth}
+        thumbHeight={story.thumbHeight}
+        eager
+        badge="Latest edition"
+      />
+    ) : (
+      <a class="lead__img" href={story.href}><img src={story.thumb} alt="" width={story.thumbWidth} height={story.thumbHeight} loading="eager" fetchpriority="high" /></a>
+    )}
+  </div>
+  <div class="lead__body">
+    <span class="kicker">{kicker}</span>
+    <h2 class="lead__title" id="lead-title">
+      {story.kind === 'guide' || story.kind === 'news' ? <a href={story.href}>{story.title}</a> : story.title}
+    </h2>
+    <p class="lead__meta">
+      <span>{story.label}</span>
+      {story.views ? <span class="lead__views">{formatViews(story.views)}</span> : null}
+      <time datetime={story.date.toISOString()}>{formatDate(story.date)}</time>
+    </p>
+    <div class="lead__ctas">
+      {story.videoId ? (
+        <button class="lead__watch" type="button" data-play="#lead-player"><Icon name="play" size={16} />Watch {isShort ? 'the Short' : 'now'}</button>
+      ) : (
+        <a class="lead__watch" href={story.href}>Read the guide</a>
+      )}
+      <a class="lead__sub" href={subscribeUrl(channel)} target="_blank" rel="noopener">{isShort ? 'Follow Leonida FP' : 'Subscribe'}</a>
+    </div>
+  </div>
+</article>
+
+<script>
+  // "Watch" button starts the player next to it.
+  document.querySelectorAll<HTMLButtonElement>('[data-play]').forEach((b) =>
+    b.addEventListener('click', () => {
+      const box = document.querySelector(b.dataset.play!);
+      box?.querySelector<HTMLButtonElement>('[data-embed]')?.click();
+      box?.scrollIntoView({ block: 'nearest', behavior: matchMedia('(prefers-reduced-motion: reduce)').matches ? 'auto' : 'smooth' });
+    }),
+  );
+</script>
+
+<style>
+  .lead {
+    display: grid;
+    gap: var(--space-m);
+  }
+  .lead__frame {
+    position: relative;
+    aspect-ratio: 16 / 9;
+    border-radius: var(--radius-l);
+    overflow: hidden;
+    background: var(--indigo-950);
+    display: grid;
+    place-items: center;
+    isolation: isolate;
+    box-shadow: var(--shadow-card);
+  }
+  .lead__backdrop {
+    position: absolute;
+    inset: -10%;
+    z-index: -1;
+    background-size: cover;
+    background-position: center;
+    filter: blur(26px) saturate(1.35) brightness(0.8);
+  }
+  .lead__frame :global(.lead__short) {
+    height: 100%;
+    width: auto;
+    aspect-ratio: 9 / 16;
+    border-radius: 0;
+    box-shadow: 0 0 0 1px rgb(253 242 216 / 0.08), 0 30px 60px -20px rgb(0 0 0 / 0.8);
+  }
+  .lead__stamp {
+    position: absolute;
+    top: 1rem;
+    left: 1rem;
+    padding: 0.35rem 0.75rem;
+    background: var(--amber);
+    color: var(--ink);
+    font-family: var(--font-head);
+    font-weight: 700;
+    font-size: 1.3rem;
+    letter-spacing: 0.04em;
+    transform: rotate(-4deg);
+    border-radius: 3px;
+  }
+  .lead__img img {
+    width: 100%;
+    aspect-ratio: 16 / 9;
+    object-fit: cover;
+    border-radius: var(--radius-l);
+  }
+  .lead__body {
+    display: grid;
+    gap: 0.6rem;
+  }
+  .lead__title {
+    font-size: var(--step-4);
+    line-height: 1;
+  }
+  .lead__title a {
+    text-decoration: none;
+  }
+  .lead__meta {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.4rem 1rem;
+    font-family: var(--font-ui);
+    font-size: 0.85rem;
+    color: var(--text-mute);
+  }
+  .lead__views {
+    color: var(--teal);
+    font-weight: 700;
+  }
+  .lead__ctas {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.75rem;
+    margin-top: 0.3rem;
+  }
+  .lead__watch,
+  .lead__sub {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    min-height: 46px;
+    padding: 0 1.25rem;
+    border-radius: var(--radius-s);
+    font-family: var(--font-ui);
+    font-size: 0.9rem;
+    font-weight: 600;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    text-decoration: none;
+  }
+  .lead__watch {
+    border: 0;
+    background: var(--crimson);
+    color: var(--cream);
+    box-shadow: 0 10px 24px -12px rgb(209 10 78 / 0.85);
+  }
+  .lead__watch:hover {
+    background: #e2135b;
+  }
+  .lead__sub {
+    border: 1.5px solid var(--line-strong);
+    color: var(--cream);
+  }
+  .lead__sub:hover {
+    border-color: var(--teal);
+    color: var(--teal);
+  }
+</style>

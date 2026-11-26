@@ -1,0 +1,46 @@
+---
+import BaseLayout from '~/layouts/BaseLayout.astro';
+import Breadcrumbs from '~/components/Breadcrumbs.astro';
+import SubscribeBand from '~/components/SubscribeBand.astro';
+import { SITE, LONG, SHORTS } from '~/config/site';
+import { breadcrumbs } from '~/lib/seo';
+const crumbs = [{ name: 'Home', href: '/' }, { name: 'About', href: '/about/' }];
+---
+<BaseLayout
+  title="About Leonida Front Page"
+  description="Leonida Front Page covers everything GTA 6: guides, secrets and news, researched and shown on screen. Long-form on the main channel, daily Shorts on Leonida FP."
+  jsonLd={[breadcrumbs(crumbs)]}
+>
+  <section class="page-head">
+    <div class="wrap">
+      <Breadcrumbs items={crumbs} />
+      <h1>About the front page</h1>
+      <p class="page-head__lede">Leonida Front Page is the complete picture on GTA 6.</p>
+    </div>
+  </section>
+
+  <section class="section section--tight">
+    <div class="wrap about">
+      <div class="prose">
+        <p>We cover everything GTA 6, and we lead with what players actually search for: how to make money, where the secrets are, what to drive, what to carry and how Leonida fits together. Alongside that, the news desk covers updates, theories and breakdowns.</p>
+        <h2>How we work</h2>
+        <ul>
+          <li><strong>Shown, not just described.</strong> If we say something is in the game, you see it on screen.</li>
+          <li><strong>Sourced and labelled.</strong> Confirmed, reported, seen in footage or rumour: we say which, every time.</li>
+          <li><strong>No filler.</strong> Every minute of a video earns its place. Long-form runs 10 to 25 minutes because some things need the time.</li>
+        </ul>
+        <h2>Two channels</h2>
+        <p><a href={LONG.url} target="_blank" rel="noopener">{LONG.name}</a> ({LONG.handle}) is the main channel: long-form guides and breakdowns. <a href={SHORTS.url} target="_blank" rel="noopener">{SHORTS.name}</a> ({SHORTS.handle}) is the official daily Shorts channel: the headline in 60 seconds.</p>
+        <h2>Fan-made</h2>
+        <p>{SITE.disclaimer} Game names and trademarks belong to their owners.</p>
+      </div>
+    </div>
+  </section>
+  <SubscribeBand />
+</BaseLayout>
+
+<style>
+  .about .prose {
+    max-width: 70ch;
+  }
+</style>

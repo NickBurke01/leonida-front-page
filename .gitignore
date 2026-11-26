@@ -1,0 +1,21 @@
+# build output
+dist/
+.astro/
+.netlify/
+
+# dependencies
+node_modules/
+
+# planning notes and strategy (kept private, never published)
+_planning/
+
+# local / OS files
+.env
+.env.*
+!.env.example
+.DS_Store
+Thumbs.db
+*.log
+npm-debug.log*
+.vscode/
+.claude/

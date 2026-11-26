@@ -1,0 +1,61 @@
+---
+import BaseLayout from '~/layouts/BaseLayout.astro';
+import SubscribeButton from '~/components/SubscribeButton.astro';
+import { LONG, SHORTS } from '~/config/site';
+---
+<BaseLayout title="You're on the list" description="Thanks for signing up to the Leonida Front Page newsletter." noindex search={false}>
+  <section class="ok">
+    <div class="wrap-narrow ok__inner">
+      <span class="ok__stamp">Extra!</span>
+      <h1>You're on the list.</h1>
+      <p>The next edition lands in your inbox when it matters. While you wait, the fastest way to catch new guides is YouTube:</p>
+      <div class="ok__ctas">
+        <SubscribeButton channel={LONG} label="Subscribe to Leonida Front Page" />
+        <SubscribeButton channel={SHORTS} variant="secondary" label="Get the Daily Shorts" />
+      </div>
+      <a class="ok__back" href="/">← Back to the front page</a>
+    </div>
+  </section>
+</BaseLayout>
+
+<style>
+  .ok {
+    padding-block: var(--space-3xl);
+    text-align: center;
+  }
+  .ok__inner {
+    display: grid;
+    justify-items: center;
+    gap: var(--space-s);
+  }
+  .ok__stamp {
+    padding: 0.35rem 0.8rem;
+    background: var(--amber);
+    color: var(--ink);
+    font-family: var(--font-head);
+    font-weight: 800;
+    font-size: 1.2rem;
+    text-transform: uppercase;
+    transform: rotate(-4deg);
+    border-radius: 3px;
+  }
+  .ok h1 {
+    font-size: var(--step-5);
+  }
+  .ok p {
+    color: var(--text-dim);
+    max-width: 48ch;
+  }
+  .ok__ctas {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
+    gap: var(--space-s);
+    margin-top: var(--space-s);
+  }
+  .ok__back {
+    margin-top: var(--space-m);
+    font-family: var(--font-ui);
+    color: var(--text-dim);
+  }
+</style>

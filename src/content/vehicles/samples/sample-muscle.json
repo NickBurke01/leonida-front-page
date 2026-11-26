@@ -1,0 +1,27 @@
+{
+  "name": "Sample Muscle",
+  "class": "muscle",
+  "manufacturer": "Sample",
+  "realLife": "American V8 muscle car",
+  "topSpeedMph": 171,
+  "price": 95000,
+  "location": "SAMPLE: replace with where you found it in-game",
+  "seats": 2,
+  "stats": {
+    "speed": 82,
+    "acceleration": 86,
+    "braking": 58,
+    "handling": 55
+  },
+  "tier": "A",
+  "images": [],
+  "faq": [
+    {
+      "q": "Where do you find the Sample Muscle?",
+      "a": "SAMPLE answer: replace with the confirmed location."
+    }
+  ],
+  "sample": true,
+  "confirmedIn": "not-confirmed",
+  "lastVerified": "2026-11-26"
+}

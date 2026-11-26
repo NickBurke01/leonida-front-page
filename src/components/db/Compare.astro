@@ -1,0 +1,260 @@
+---
+/**
+ * Compare two entries side by side. Data is embedded as JSON; selections live in the URL
+ * (?a=id&b=id) so a comparison can be shared.
+ */
+interface Props {
+  items: { id: string; name: string; groupLabel: string; tier: string | null; image: string | null; stats: Record<string, number | null | undefined>; facts: Record<string, string | number | null>; sample?: boolean }[];
+  labels: Record<string, string>;
+  noun: string;
+  base: string;
+  placeholder: string;
+}
+const { items, labels, noun, base, placeholder } = Astro.props;
+const payload = JSON.stringify({ items, labels, base, placeholder }).replace(/</g, '\\u003c');
+---
+<div class="cmp" data-cmp>
+  <div class="cmp__pickers">
+    {['a', 'b'].map((slot, i) => (
+      <label class="cmp__pick">
+        <span>{i === 0 ? `First ${noun}` : `Second ${noun}`}</span>
+        <select data-cmp-select={slot}>
+          <option value="">Choose a {noun}…</option>
+          {items.map((it) => <option value={it.id}>{it.name} · {it.groupLabel}</option>)}
+        </select>
+      </label>
+    ))}
+    <button type="button" class="cmp__swap" data-cmp-swap aria-label="Swap the two">⇄</button>
+  </div>
+  <div class="cmp__out" data-cmp-out aria-live="polite">
+    <p class="cmp__hint">Pick two {noun}s to see them side by side.</p>
+  </div>
+  <noscript><p class="cmp__hint">The compare tool needs JavaScript. Every {noun} page lists its full stats.</p></noscript>
+</div>
+<script type="application/json" data-cmp-data set:html={payload}></script>
+
+<script>
+  type Item = { id: string; name: string; groupLabel: string; tier: string | null; image: string | null; stats: Record<string, number | null>; facts: Record<string, string | number | null>; sample?: boolean };
+  const root = document.querySelector<HTMLElement>('[data-cmp]');
+  const raw = document.querySelector('[data-cmp-data]')?.textContent;
+  if (root && raw) {
+    const { items, labels, base, placeholder } = JSON.parse(raw) as { items: Item[]; labels: Record<string, string>; base: string; placeholder: string };
+    const sel = { a: root.querySelector<HTMLSelectElement>('[data-cmp-select="a"]')!, b: root.querySelector<HTMLSelectElement>('[data-cmp-select="b"]')! };
+    const out = root.querySelector<HTMLElement>('[data-cmp-out]')!;
+    const esc = (s: unknown) => String(s ?? '').replace(/[&<>"']/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' })[c]!);
+    const q = new URLSearchParams(location.search);
+    sel.a.value = q.get('a') ?? '';
+    sel.b.value = q.get('b') ?? '';
+
+    const render = () => {
+      const A = items.find((i) => i.id === sel.a.value);
+      const B = items.find((i) => i.id === sel.b.value);
+      const url = new URL(location.href);
+      sel.a.value ? url.searchParams.set('a', sel.a.value) : url.searchParams.delete('a');
+      sel.b.value ? url.searchParams.set('b', sel.b.value) : url.searchParams.delete('b');
+      history.replaceState(null, '', url);
+      if (!A && !B) { out.innerHTML = '<p class="cmp__hint">Pick two to see them side by side.</p>'; return; }
+      const col = (it?: Item) => it ? `
+        <div class="cmp__col">
+          <a class="cmp__card" href="${base}${esc(it.id)}/">
+            <img src="${esc(it.image ?? placeholder)}" alt="" width="800" height="450" loading="lazy">
+            <span class="cmp__name">${esc(it.name)}${it.sample ? ' <em>sample</em>' : ''}</span>
+            <span class="cmp__group">${esc(it.groupLabel)}${it.tier ? ` · ${esc(it.tier)}-tier` : ''}</span>
+          </a>
+        </div>` : '<div class="cmp__col cmp__col--empty">Choose one</div>';
+      const statRow = (k: string) => {
+        const a = A?.stats?.[k], b = B?.stats?.[k];
+        const win = a != null && b != null ? (a > b ? 'a' : b > a ? 'b' : '') : '';
+        const bar = (v: number | null | undefined, w: boolean) => v == null ? '<span class="cmp__na">Not confirmed</span>' : `<span class="cmp__bar${w ? ' is-win' : ''}"><span style="width:${v}%"></span></span><span class="cmp__v">${v}</span>`;
+        return `<div class="cmp__row"><span class="cmp__label">${esc(labels[k])}</span><div class="cmp__cell">${bar(a, win === 'a')}</div><div class="cmp__cell">${bar(b, win === 'b')}</div></div>`;
+      };
+      const factKeys = [...new Set([...Object.keys(A?.facts ?? {}), ...Object.keys(B?.facts ?? {})])];
+      const factRow = (k: string) => `<div class="cmp__row"><span class="cmp__label">${esc(k)}</span><div class="cmp__cell cmp__fact">${A ? esc(A.facts[k] ?? 'Not confirmed') : ''}</div><div class="cmp__cell cmp__fact">${B ? esc(B.facts[k] ?? 'Not confirmed') : ''}</div></div>`;
+      out.innerHTML = `<div class="cmp__heads">${col(A)}${col(B)}</div><div class="cmp__table">${Object.keys(labels).map(statRow).join('')}${factKeys.map(factRow).join('')}</div>`;
+    };
+    sel.a.addEventListener('change', render);
+    sel.b.addEventListener('change', render);
+    root.querySelector('[data-cmp-swap]')?.addEventListener('click', () => { [sel.a.value, sel.b.value] = [sel.b.value, sel.a.value]; render(); });
+    render();
+  }
+</script>
+
+<style>
+  .cmp__pickers {
+    display: grid;
+    grid-template-columns: 1fr auto 1fr;
+    gap: 0.75rem;
+    align-items: end;
+  }
+  .cmp__pickers .cmp__pick:nth-of-type(2) {
+    order: 3;
+  }
+  .cmp__pick {
+    display: grid;
+    gap: 0.35rem;
+    font-family: var(--font-ui);
+    font-size: 0.8rem;
+    font-weight: 700;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: var(--amber);
+  }
+  .cmp__pick select {
+    min-height: 50px;
+    padding: 0 0.9rem;
+    border: 1px solid var(--line-strong);
+    border-radius: var(--radius-m);
+    background: var(--surface);
+    font-size: 0.95rem;
+    letter-spacing: 0;
+    text-transform: none;
+    color: var(--cream);
+  }
+  .cmp__swap {
+    order: 2;
+    width: 50px;
+    height: 50px;
+    border-radius: 50%;
+    border: 1px solid var(--line-strong);
+    background: transparent;
+    font-size: 1.2rem;
+  }
+  .cmp__out {
+    margin-top: var(--space-l);
+  }
+  .cmp__out :global(.cmp__hint),
+  .cmp__hint {
+    color: var(--text-dim);
+    padding: var(--space-l) 0;
+    text-align: center;
+  }
+  .cmp__out :global(.cmp__heads) {
+    display: grid;
+    grid-template-columns: 8.5rem 1fr 1fr;
+    gap: var(--space-s);
+  }
+  .cmp__out :global(.cmp__heads)::before {
+    content: '';
+  }
+  .cmp__out :global(.cmp__card) {
+    display: grid;
+    gap: 0.3rem;
+    text-decoration: none;
+  }
+  .cmp__out :global(.cmp__card img) {
+    border-radius: var(--radius-m);
+    aspect-ratio: 16 / 9;
+    object-fit: cover;
+    border: 1px solid var(--line);
+  }
+  .cmp__out :global(.cmp__name) {
+    font-family: var(--font-head);
+    font-weight: var(--head-weight);
+    text-transform: var(--head-transform);
+    font-size: 1.4rem;
+    line-height: 1.05;
+  }
+  .cmp__out :global(.cmp__name em) {
+    font-family: var(--font-ui);
+    font-style: normal;
+    font-size: 0.65rem;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    padding: 0.1rem 0.4rem;
+    border-radius: 4px;
+    background: var(--amber);
+    color: var(--ink);
+    vertical-align: middle;
+  }
+  .cmp__out :global(.cmp__group) {
+    font-family: var(--font-ui);
+    font-size: 0.78rem;
+    color: var(--text-mute);
+  }
+  .cmp__out :global(.cmp__col--empty) {
+    display: grid;
+    place-items: center;
+    min-height: 140px;
+    border: 1px dashed var(--line-strong);
+    border-radius: var(--radius-m);
+    color: var(--text-mute);
+    font-family: var(--font-ui);
+  }
+  .cmp__out :global(.cmp__table) {
+    margin-top: var(--space-m);
+    border-top: 1px solid var(--line);
+  }
+  .cmp__out :global(.cmp__row) {
+    display: grid;
+    grid-template-columns: 8.5rem 1fr 1fr;
+    gap: var(--space-s);
+    align-items: center;
+    padding: 0.7rem 0;
+    border-bottom: 1px solid var(--line);
+  }
+  .cmp__out :global(.cmp__label) {
+    font-family: var(--font-ui);
+    font-size: 0.82rem;
+    font-weight: 600;
+    color: var(--text-dim);
+  }
+  .cmp__out :global(.cmp__cell) {
+    display: flex;
+    align-items: center;
+    gap: 0.6rem;
+  }
+  .cmp__out :global(.cmp__bar) {
+    flex: 1;
+    height: 9px;
+    border-radius: 99px;
+    background: rgb(253 242 216 / 0.08);
+    overflow: hidden;
+  }
+  .cmp__out :global(.cmp__bar span) {
+    display: block;
+    height: 100%;
+    border-radius: inherit;
+    background: var(--indigo-600);
+  }
+  .cmp__out :global(.cmp__bar.is-win span) {
+    background: var(--sunset);
+  }
+  .cmp__out :global(.cmp__v) {
+    font-family: var(--font-ui);
+    font-weight: 700;
+    font-size: 0.85rem;
+    min-width: 2.2ch;
+    text-align: right;
+    font-variant-numeric: tabular-nums;
+  }
+  .cmp__out :global(.cmp__na) {
+    font-family: var(--font-ui);
+    font-size: 0.78rem;
+    font-style: italic;
+    color: var(--text-mute);
+  }
+  .cmp__out :global(.cmp__fact) {
+    font-family: var(--font-ui);
+    font-size: 0.9rem;
+    font-weight: 600;
+  }
+  @media (max-width: 640px) {
+    .cmp__pickers {
+      grid-template-columns: 1fr;
+    }
+    .cmp__pickers .cmp__pick:nth-of-type(2) {
+      order: 0;
+    }
+    .cmp__swap {
+      justify-self: center;
+    }
+    .cmp__out :global(.cmp__heads),
+    .cmp__out :global(.cmp__row) {
+      grid-template-columns: 5.5rem 1fr 1fr;
+      gap: 0.6rem;
+    }
+    .cmp__out :global(.cmp__name) {
+      font-size: 1.05rem;
+    }
+  }
+</style>

@@ -1,0 +1,259 @@
+---
+import BaseLayout from '~/layouts/BaseLayout.astro';
+import Breadcrumbs from '~/components/Breadcrumbs.astro';
+import DbEmpty from '~/components/db/DbEmpty.astro';
+import SubscribeBand from '~/components/SubscribeBand.astro';
+import { getChecklistGroups } from '~/lib/database';
+import { breadcrumbs } from '~/lib/seo';
+
+const groups = await getChecklistGroups();
+const total = groups.reduce((n, g) => n + g.data.items.length, 0);
+const crumbs = [{ name: 'Home', href: '/' }, { name: '100% Checklist', href: '/checklist/' }];
+---
+<BaseLayout kind="hub"
+  title="GTA 6 100% Completion Checklist"
+  description="Track your GTA 6 100% completion: missions, activities and collectibles you can tick off. Progress saves in your browser, no account needed."
+  jsonLd={[breadcrumbs(crumbs)]}
+  noindex={groups.filter((g) => !g.data.sample).length === 0}
+>
+  <section class="page-head">
+    <div class="wrap">
+      <Breadcrumbs items={crumbs} />
+      <h1>100% Checklist</h1>
+      <p class="page-head__lede">Tick things off as you go. Your progress is saved on this device, no account needed.</p>
+    </div>
+  </section>
+  <section class="section section--tight">
+    <div class="wrap">
+      {groups.length === 0 ? <DbEmpty noun="checklist" source="checklist-empty" /> : (
+        <div class="ck" data-ck data-total={total}>
+          <div class="ck__progress">
+            <div class="ck__nums"><span class="ck__pct" data-ck-pct>0%</span><span data-ck-count>0 / {total}</span></div>
+            <div class="ck__bar" role="progressbar" aria-valuemin="0" aria-valuemax={total} aria-valuenow="0" aria-label="Completion" data-ck-bar><span></span></div>
+            <button type="button" class="ck__reset" data-ck-reset>Reset progress</button>
+          </div>
+          {groups.map((g) => (
+            <section class="ck__group" aria-labelledby={`g-${g.id}`}>
+              <div class="ck__ghead">
+                <h2 id={`g-${g.id}`}>{g.data.title}</h2>
+                <span class="ck__gcount" data-ck-gcount={g.id}>0 / {g.data.items.length}</span>
+              </div>
+              {g.data.description && <p class="ck__gdesc">{g.data.description}</p>}
+              <ul>
+                {g.data.items.map((it) => (
+                  <li>
+                    <label class="ck__item">
+                      <input type="checkbox" data-ck-item={it.id} data-ck-group={g.id} />
+                      <span class="ck__box" aria-hidden="true"></span>
+                      <span class="ck__label">{it.label}{it.note && <small>{it.note}</small>}</span>
+                    </label>
+                    {it.link && <a class="ck__link" href={it.link}>Guide →</a>}
+                  </li>
+                ))}
+              </ul>
+            </section>
+          ))}
+        </div>
+      )}
+    </div>
+  </section>
+  <SubscribeBand />
+</BaseLayout>
+
+<script>
+  const root = document.querySelector<HTMLElement>('[data-ck]');
+  if (root) {
+    const KEY = 'lfp-checklist-v1';
+    const total = Number(root.dataset.total);
+    const boxes = [...root.querySelectorAll<HTMLInputElement>('[data-ck-item]')];
+    let saved: Record<string, boolean> = {};
+    try { saved = JSON.parse(localStorage.getItem(KEY) ?? '{}'); } catch {}
+    boxes.forEach((b) => (b.checked = !!saved[b.dataset.ckItem!]));
+    const update = () => {
+      const done = boxes.filter((b) => b.checked).length;
+      const pct = total ? Math.round((done / total) * 100) : 0;
+      root.querySelector('[data-ck-pct]')!.textContent = `${pct}%`;
+      root.querySelector('[data-ck-count]')!.textContent = `${done} / ${total}`;
+      const bar = root.querySelector<HTMLElement>('[data-ck-bar]')!;
+      bar.setAttribute('aria-valuenow', String(done));
+      bar.querySelector('span')!.style.width = `${pct}%`;
+      root.querySelectorAll<HTMLElement>('[data-ck-gcount]').forEach((el) => {
+        const g = boxes.filter((b) => b.dataset.ckGroup === el.dataset.ckGcount);
+        el.textContent = `${g.filter((b) => b.checked).length} / ${g.length}`;
+      });
+    };
+    boxes.forEach((b) => b.addEventListener('change', () => {
+      saved[b.dataset.ckItem!] = b.checked;
+      if (!b.checked) delete saved[b.dataset.ckItem!];
+      try { localStorage.setItem(KEY, JSON.stringify(saved)); } catch {}
+      update();
+    }));
+    root.querySelector('[data-ck-reset]')?.addEventListener('click', () => {
+      if (!confirm('Clear all your ticks on this device?')) return;
+      saved = {};
+      try { localStorage.removeItem(KEY); } catch {}
+      boxes.forEach((b) => (b.checked = false));
+      update();
+    });
+    update();
+  }
+</script>
+
+<style>
+  .ck {
+    display: grid;
+    gap: var(--space-l);
+  }
+  .ck__progress {
+    position: sticky;
+    top: calc(var(--masthead-h) + 0.5rem);
+    z-index: 5;
+    display: grid;
+    grid-template-columns: auto 1fr auto;
+    gap: var(--space-s);
+    align-items: center;
+    padding: 0.9rem 1.1rem;
+    border: 1px solid var(--line-strong);
+    border-radius: var(--radius-l);
+    background: rgb(26 12 54 / 0.95);
+    backdrop-filter: blur(10px);
+  }
+  .ck__nums {
+    display: grid;
+    font-family: var(--font-ui);
+    font-size: 0.78rem;
+    color: var(--text-mute);
+  }
+  .ck__pct {
+    font-family: var(--font-head);
+    font-weight: 800;
+    font-size: 1.8rem;
+    line-height: 1;
+    color: var(--cream);
+  }
+  .ck__bar {
+    height: 10px;
+    border-radius: 99px;
+    background: rgb(253 242 216 / 0.08);
+    overflow: hidden;
+  }
+  .ck__bar span {
+    display: block;
+    height: 100%;
+    width: 0;
+    background: var(--sunset);
+    transition: width 0.4s var(--ease);
+  }
+  .ck__reset {
+    padding: 0.5rem 0.9rem;
+    border: 1px solid var(--line-strong);
+    border-radius: var(--radius-pill);
+    background: transparent;
+    font-family: var(--font-ui);
+    font-size: 0.8rem;
+    color: var(--text-dim);
+  }
+  .ck__ghead {
+    display: flex;
+    justify-content: space-between;
+    align-items: baseline;
+    gap: var(--space-s);
+    padding-bottom: 0.5rem;
+    border-bottom: 1px solid var(--line);
+  }
+  .ck__ghead h2 {
+    font-size: var(--step-2);
+  }
+  .ck__gcount {
+    font-family: var(--font-ui);
+    font-weight: 700;
+    color: var(--teal);
+    font-variant-numeric: tabular-nums;
+  }
+  .ck__gdesc {
+    margin-top: 0.5rem;
+    color: var(--text-mute);
+    font-size: 0.92rem;
+  }
+  .ck__group ul {
+    list-style: none;
+    padding: 0;
+  }
+  .ck__group li {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: var(--space-s);
+    border-bottom: 1px solid var(--line);
+  }
+  .ck__item {
+    flex: 1;
+    display: flex;
+    align-items: center;
+    gap: 0.85rem;
+    padding: 0.85rem 0.2rem;
+    cursor: pointer;
+  }
+  .ck__item input {
+    position: absolute;
+    opacity: 0;
+    width: 1px;
+    height: 1px;
+  }
+  .ck__box {
+    flex: none;
+    width: 24px;
+    height: 24px;
+    border: 2px solid var(--line-strong);
+    border-radius: 6px;
+    display: grid;
+    place-items: center;
+    transition: background-color 0.15s var(--ease), border-color 0.15s var(--ease);
+  }
+  .ck__item input:checked + .ck__box {
+    background: var(--crimson);
+    border-color: var(--crimson);
+  }
+  .ck__item input:checked + .ck__box::after {
+    content: '';
+    width: 11px;
+    height: 6px;
+    border-left: 2.5px solid var(--cream);
+    border-bottom: 2.5px solid var(--cream);
+    transform: rotate(-45deg) translate(1px, -1px);
+  }
+  .ck__item input:focus-visible + .ck__box {
+    outline: 2px solid var(--focus);
+    outline-offset: 2px;
+  }
+  .ck__label {
+    display: grid;
+    font-family: var(--font-ui);
+    font-weight: 600;
+  }
+  .ck__item input:checked ~ .ck__label {
+    color: var(--text-mute);
+    text-decoration: line-through;
+  }
+  .ck__label small {
+    font-weight: 400;
+    color: var(--text-mute);
+  }
+  .ck__link {
+    font-family: var(--font-ui);
+    font-size: 0.82rem;
+    font-weight: 700;
+    color: var(--teal);
+    text-decoration: none;
+    white-space: nowrap;
+  }
+  @media (max-width: 600px) {
+    .ck__progress {
+      grid-template-columns: auto 1fr;
+    }
+    .ck__reset {
+      grid-column: 1 / -1;
+      justify-self: start;
+    }
+  }
+</style>

@@ -1,0 +1,105 @@
+---
+import BaseLayout from '~/layouts/BaseLayout.astro';
+import Breadcrumbs from '~/components/Breadcrumbs.astro';
+import DbEmpty from '~/components/db/DbEmpty.astro';
+import SubscribeBand from '~/components/SubscribeBand.astro';
+import { getMissions } from '~/lib/database';
+import { breadcrumbs } from '~/lib/seo';
+
+const missions = await getMissions();
+const crumbs = [{ name: 'Home', href: '/' }, { name: 'Missions', href: '/missions/' }];
+const chapters = [...new Set(missions.map((m) => m.data.chapter ?? 'Other missions'))];
+---
+<BaseLayout kind="hub"
+  title="GTA 6 Missions: Walkthroughs for Every Mission"
+  description="GTA 6 mission walkthroughs in story order: objectives, rewards and step-by-step help. Spoilers stay hidden until you choose to reveal them."
+  jsonLd={[breadcrumbs(crumbs)]}
+  noindex={missions.filter((m) => !m.data.sample).length === 0}
+>
+  <section class="page-head">
+    <div class="wrap">
+      <Breadcrumbs items={crumbs} />
+      <h1>GTA 6 Missions</h1>
+      <p class="page-head__lede">Walkthroughs in story order. Mission names and objectives are visible; walkthroughs stay hidden until you tap to reveal them.</p>
+    </div>
+  </section>
+  <section class="section section--tight">
+    <div class="wrap">
+      {missions.length === 0 ? <DbEmpty noun="mission" source="missions-empty" /> : chapters.map((ch) => (
+        <section class="mc" aria-label={ch}>
+          <h2>{ch}</h2>
+          <ol class="mc__list">
+            {missions.filter((m) => (m.data.chapter ?? 'Other missions') === ch).map((m) => (
+              <li>
+                <a class="mc__item" href={`/missions/${m.id}/`}>
+                  <span class="mc__n">{String(m.data.order ?? '').padStart(2, '0')}</span>
+                  <span class="mc__text">
+                    <span class="mc__name">{m.data.name}{m.data.sample && <em> sample</em>}</span>
+                    {m.data.summary && <span class="mc__sum">{m.data.summary}</span>}
+                  </span>
+                  {m.data.youtubeId && <span class="pill">Video</span>}
+                </a>
+              </li>
+            ))}
+          </ol>
+        </section>
+      ))}
+    </div>
+  </section>
+  <SubscribeBand />
+</BaseLayout>
+
+<style>
+  .mc + .mc {
+    margin-top: var(--space-xl);
+  }
+  .mc h2 {
+    font-size: var(--step-3);
+    margin-bottom: var(--space-s);
+  }
+  .mc__list {
+    list-style: none;
+    padding: 0;
+    border-top: 1px solid var(--line);
+  }
+  .mc__item {
+    display: grid;
+    grid-template-columns: 3rem 1fr auto;
+    gap: var(--space-s);
+    align-items: center;
+    padding: 1rem 0.5rem;
+    border-bottom: 1px solid var(--line);
+    text-decoration: none;
+    transition: background-color 0.2s var(--ease);
+  }
+  .mc__item:hover {
+    background: var(--surface);
+  }
+  .mc__n {
+    font-family: var(--font-head);
+    font-weight: 800;
+    font-size: 1.5rem;
+    color: var(--amber);
+  }
+  .mc__text {
+    display: grid;
+    gap: 0.2rem;
+  }
+  .mc__name {
+    font-family: var(--font-ui);
+    font-weight: 700;
+    font-size: 1.02rem;
+  }
+  .mc__name em {
+    font-style: normal;
+    font-size: 0.62rem;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    color: var(--amber);
+  }
+  .mc__sum {
+    font-family: var(--font-ui);
+    font-size: 0.86rem;
+    color: var(--text-mute);
+  }
+</style>

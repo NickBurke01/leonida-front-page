@@ -1,0 +1,127 @@
+---
+import BaseLayout from '~/layouts/BaseLayout.astro';
+import Breadcrumbs from '~/components/Breadcrumbs.astro';
+import FeaturedVideo from '~/components/FeaturedVideo.astro';
+import WatchNext from '~/components/WatchNext.astro';
+import Confirmed from '~/components/db/Confirmed.astro';
+import Spoiler from '~/components/db/Spoiler.astro';
+import Faq from '~/components/db/Faq.astro';
+import EntryCard from '~/components/db/EntryCard.astro';
+import SubscribeBand from '~/components/SubscribeBand.astro';
+import { getCharacters, type Character } from '~/lib/database';
+import { breadcrumbs, faqPage } from '~/lib/seo';
+
+export async function getStaticPaths() {
+  return (await getCharacters()).map((c) => ({ params: { slug: c.id }, props: { entry: c } }));
+}
+interface Props {
+  entry: Character;
+}
+const { entry } = Astro.props;
+const all = await getCharacters();
+const d = entry.data;
+const href = `/characters/${entry.id}/`;
+const crumbs = [{ name: 'Home', href: '/' }, { name: 'Characters', href: '/characters/' }, { name: d.name, href }];
+const rel = [...all.filter((c) => d.relatedCharacters.includes(c.id)), ...all.filter((c) => c.id !== entry.id && !d.relatedCharacters.includes(c.id))].slice(0, 4);
+const lede = d.summary ?? `${d.name} is a character in GTA 6.`;
+const ld: object[] = [breadcrumbs(crumbs)];
+if (d.faq.length) ld.push(faqPage(d.faq));
+---
+<BaseLayout kind="entry" title={`${d.name} in GTA 6: Who They Are`} description={lede.slice(0, 165)} image={d.images[0]?.src} type="article" noindex={d.sample} search={!d.sample} jsonLd={ld} modified={d.lastVerified}>
+  <article class="ch">
+    <header class="ch__head">
+      <div class="wrap">
+        <Breadcrumbs items={crumbs} />
+        <span class="ch__role">{d.role}</span>
+        <h1>{d.name}</h1>
+        <p class="ch__lede">{lede}</p>
+        <Confirmed confirmedIn={d.confirmedIn} lastVerified={d.lastVerified} sample={d.sample} />
+      </div>
+    </header>
+    <div class="wrap ch__grid">
+      <div class="ch__main">
+        <div class="ch__portrait"><img src={d.images[0]?.src ?? '/images/placeholders/db-character.webp'} alt={d.images[0]?.alt ?? ''} width="1600" height="900" /></div>
+        {d.bio && <div class="prose"><p>{d.bio}</p></div>}
+        {d.spoiler && d.spoilerText && <Spoiler label="Story spoilers"><div class="prose"><p>{d.spoilerText}</p></div></Spoiler>}
+        <FeaturedVideo videoId={d.youtubeId} title={`${d.name} in GTA 6`} compact />
+        <Faq items={d.faq} />
+      </div>
+      <aside><div class="ch__sticky"><WatchNext exclude={d.youtubeId} /></div></aside>
+    </div>
+  </article>
+  {rel.length > 0 && (
+    <section class="section" aria-labelledby="rel-h">
+      <div class="wrap">
+        <div class="section-head"><div><span class="kicker">Related</span><h2 id="rel-h">Connected characters</h2></div><a class="more" href="/characters/">All characters</a></div>
+        <div class="ch__rel">
+          {rel.map((c) => <EntryCard headingLevel="h3" href={`/characters/${c.id}/`} name={c.data.name} group="c" groupLabel={c.data.role} image={c.data.images[0]?.src} placeholder="/images/placeholders/db-character.webp" meta={c.data.summary ?? null} sample={c.data.sample} />)}
+        </div>
+      </div>
+    </section>
+  )}
+  <SubscribeBand />
+</BaseLayout>
+
+<style>
+  .ch__head {
+    padding-block: var(--space-xl) var(--space-l);
+  }
+  .ch__role {
+    display: block;
+    margin-top: var(--space-m);
+    font-family: var(--font-ui);
+    font-size: 0.75rem;
+    font-weight: 700;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    color: var(--crimson-text);
+  }
+  .ch h1 {
+    font-size: var(--step-5);
+    margin-top: 0.3rem;
+  }
+  .ch__lede {
+    margin-block: var(--space-s) var(--space-m);
+    max-width: 62ch;
+    font-size: var(--step-1);
+    line-height: 1.5;
+  }
+  .ch__grid {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) 320px;
+    gap: clamp(1.5rem, 1rem + 3vw, 4rem);
+    align-items: start;
+  }
+  .ch__main {
+    display: grid;
+    gap: var(--space-l);
+  }
+  .ch__portrait {
+    aspect-ratio: 16 / 9;
+    border-radius: var(--radius-l);
+    overflow: hidden;
+    border: 1px solid var(--line);
+  }
+  .ch__portrait img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+  }
+  .ch__sticky {
+    position: sticky;
+    top: calc(var(--masthead-h) + 1.5rem);
+  }
+  .ch__rel {
+    display: grid;
+    gap: var(--space-s);
+    grid-template-columns: repeat(auto-fill, minmax(min(100%, 230px), 1fr));
+  }
+  @media (max-width: 1020px) {
+    .ch__grid {
+      grid-template-columns: 1fr;
+    }
+    .ch__sticky {
+      position: static;
+    }
+  }
+</style>

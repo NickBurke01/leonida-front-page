@@ -1,0 +1,104 @@
+---
+/** Stats as bars (0-100). Missing values say "Not confirmed yet" instead of guessing. */
+interface Props {
+  stats: Record<string, number | null | undefined>;
+  labels: Record<string, string>;
+  compact?: boolean;
+  only?: string[];
+}
+const { stats, labels, compact = false, only } = Astro.props;
+const keys = (only ?? Object.keys(labels)).filter((k) => k in labels);
+---
+<dl class:list={['sb', { 'sb--compact': compact }]} data-pagefind-ignore>
+  {keys.map((k) => {
+    const v = stats[k];
+    return (
+      <div class="sb__row">
+        <dt>{labels[k]}</dt>
+        <dd>
+          {v == null ? (
+            <span class="sb__na">{compact ? 'n/c' : 'Not confirmed yet'}</span>
+          ) : (
+            <>
+              <span class="sb__track" role="meter" aria-valuemin="0" aria-valuemax="100" aria-valuenow={v} aria-label={`${labels[k]}: ${v} out of 100`}>
+                <span class="sb__fill" style={`--v:${v}%`}></span>
+              </span>
+              <span class="sb__num">{v}</span>
+            </>
+          )}
+        </dd>
+      </div>
+    );
+  })}
+</dl>
+
+<style>
+  .sb {
+    display: grid;
+    gap: 0.7rem;
+  }
+  .sb--compact {
+    gap: 0.4rem;
+  }
+  .sb__row {
+    display: grid;
+    grid-template-columns: 7.5rem 1fr;
+    align-items: center;
+    gap: 0.75rem;
+  }
+  .sb--compact .sb__row {
+    grid-template-columns: 5.6rem 1fr;
+    gap: 0.5rem;
+  }
+  dt {
+    font-family: var(--font-ui);
+    font-size: 0.82rem;
+    font-weight: 600;
+    color: var(--text-dim);
+  }
+  .sb--compact dt {
+    font-size: 0.72rem;
+  }
+  dd {
+    display: flex;
+    align-items: center;
+    gap: 0.6rem;
+    margin: 0;
+  }
+  .sb__track {
+    position: relative;
+    flex: 1;
+    height: 8px;
+    border-radius: 99px;
+    background: rgb(253 242 216 / 0.08);
+    overflow: hidden;
+  }
+  .sb--compact .sb__track {
+    height: 5px;
+  }
+  .sb__fill {
+    position: absolute;
+    inset: 0 auto 0 0;
+    width: var(--v);
+    border-radius: inherit;
+    background: var(--sunset);
+  }
+  .sb__num {
+    min-width: 2ch;
+    font-family: var(--font-ui);
+    font-size: 0.8rem;
+    font-weight: 700;
+    font-variant-numeric: tabular-nums;
+    color: var(--cream);
+    text-align: right;
+  }
+  .sb--compact .sb__num {
+    font-size: 0.7rem;
+  }
+  .sb__na {
+    font-family: var(--font-ui);
+    font-size: 0.78rem;
+    color: var(--text-mute);
+    font-style: italic;
+  }
+</style>

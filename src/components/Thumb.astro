@@ -1,0 +1,22 @@
+---
+/** Small YouTube thumbnail, resized and converted to WebP at build time (falls back to YouTube's image). */
+import { getImage } from 'astro:assets';
+interface Props {
+  src: string;
+  srcWidth: number;
+  srcHeight: number;
+  /** Display width in CSS pixels; the image is generated at 2x for sharp screens. */
+  width: number;
+  alt?: string;
+  position?: string;
+}
+const { src, srcWidth, srcHeight, width, alt = '', position = 'center' } = Astro.props;
+const height = Math.round((width * srcHeight) / srcWidth);
+let out = src;
+try {
+  out = (await getImage({ src, width: width * 2, height: height * 2, format: 'webp', quality: 70 })).src;
+} catch {
+  /* use the original */
+}
+---
+<img src={out} alt={alt} width={width} height={height} loading="lazy" decoding="async" style={`object-position:${position}`} />

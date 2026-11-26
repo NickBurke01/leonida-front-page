@@ -1,0 +1,32 @@
+---
+import BaseLayout from '~/layouts/BaseLayout.astro';
+import Article from '~/components/Article.astro';
+import SubscribeBand from '~/components/SubscribeBand.astro';
+import { NEWS_CATEGORIES } from '~/config/site';
+import { getNews } from '~/lib/content';
+import { article, breadcrumbs, videoObject } from '~/lib/seo';
+import type { CollectionEntry } from 'astro:content';
+
+export async function getStaticPaths() {
+  const news = await getNews();
+  return news.map((n) => ({ params: { slug: n.id }, props: { entry: n } }));
+}
+interface Props {
+  entry: CollectionEntry<'news'>;
+}
+const { entry } = Astro.props;
+const all = await getNews();
+const href = `/news/${entry.id}/`;
+const crumbs = [{ name: 'Home', href: '/' }, { name: 'News', href: '/news/' }, { name: entry.data.title, href }];
+const related = all.filter((n) => n.id !== entry.id).slice(0, 3);
+const image = entry.data.image ?? '/images/placeholders/news-lead.webp';
+const ld: object[] = [
+  breadcrumbs(crumbs),
+  article({ title: entry.data.title, description: entry.data.description, href, image, date: entry.data.date, updated: entry.data.updated, section: NEWS_CATEGORIES[entry.data.category] }),
+];
+if (entry.data.youtubeId) ld.push(videoObject({ id: entry.data.youtubeId, title: entry.data.title, description: entry.data.description }));
+---
+<BaseLayout kind="article" title={entry.data.title} description={entry.data.description} type="article" noindex={entry.data.placeholder} jsonLd={ld} published={entry.data.date} modified={entry.data.updated}>
+  <Article entry={entry} related={related} crumbs={crumbs} />
+  <SubscribeBand />
+</BaseLayout>

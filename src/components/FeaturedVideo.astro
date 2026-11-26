@@ -1,0 +1,26 @@
+---
+/**
+ * The main long-form player. Shows a specific video if given, otherwise the newest long-form
+ * upload (continuing through the channel's uploads), otherwise the "first edition" empty state.
+ */
+import { getChannels, videoById, embedUrl, embedWithPlaylist } from '~/lib/youtube';
+import VideoFacade from './VideoFacade.astro';
+import EmptyVideo from './EmptyVideo.astro';
+
+interface Props {
+  videoId?: string;
+  title?: string;
+  eager?: boolean;
+  compact?: boolean;
+  badge?: string;
+}
+const { videoId, title, eager = false, compact = false, badge } = Astro.props;
+const { long } = await getChannels();
+const video = videoId ? await videoById(videoId, title ?? 'Leonida Front Page video') : long.longVideos[0];
+const src = video ? (videoId || !long.playlist ? embedUrl(video.id) : embedWithPlaylist(video.id, long.playlist)) : '';
+---
+{video ? (
+  <VideoFacade embedSrc={src} title={videoId && title ? title : video.title} thumb={video.thumb} thumbWidth={video.thumbWidth} thumbHeight={video.thumbHeight} eager={eager} badge={badge} />
+) : (
+  <EmptyVideo kind="long" compact={compact} />
+)}

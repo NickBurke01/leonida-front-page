@@ -1,0 +1,126 @@
+---
+/** 3-4 smaller front-page stories next to the lead, newspaper style. */
+import type { Story } from '~/lib/home';
+import { formatViews } from '~/lib/youtube';
+import { formatDate } from '~/lib/format';
+import Thumb from '../Thumb.astro';
+
+interface Props {
+  stories: Story[];
+}
+const { stories } = Astro.props;
+---
+<aside class="sec" aria-labelledby="sec-h">
+  <p class="sec__head" id="sec-h">Also on the front page</p>
+  <ol class="sec__list">
+    {stories.map((s) => (
+      <li>
+        <a class="sec__item" href={s.href} target={s.external ? '_blank' : undefined} rel={s.external ? 'noopener' : undefined}>
+          <span class:list={['sec__thumb', { 'sec__thumb--tall': s.kind === 'short' }]}>
+            {s.kind === 'short' && s.thumbVertical ? (
+              <Thumb src={s.thumbVertical} srcWidth={1080} srcHeight={1920} width={120} position="center 35%" />
+            ) : s.external ? (
+              <Thumb src={s.thumb} srcWidth={s.thumbWidth} srcHeight={s.thumbHeight} width={200} />
+            ) : (
+              <img src={s.thumb} alt="" width="200" height="113" loading="lazy" decoding="async" />
+            )}
+          </span>
+          <span class="sec__text">
+            <span class="sec__label">{s.label}</span>
+            <span class="sec__title">{s.title}</span>
+            <span class="sec__meta">
+              {s.views ? <span class="sec__views">{formatViews(s.views)}</span> : null}
+              {s.placeholder ? <span>Coming with the video</span> : <time datetime={s.date.toISOString()}>{formatDate(s.date)}</time>}
+            </span>
+          </span>
+        </a>
+      </li>
+    ))}
+  </ol>
+</aside>
+
+<style>
+  .sec {
+    display: grid;
+    align-content: start;
+  }
+  .sec__head {
+    padding-bottom: 0.6rem;
+    border-bottom: 3px double var(--line-strong);
+    font-family: var(--font-ui);
+    font-size: 0.78rem;
+    font-weight: 700;
+    letter-spacing: 0.16em;
+    text-transform: uppercase;
+    color: var(--amber);
+  }
+  .sec__list {
+    list-style: none;
+    padding: 0;
+  }
+  .sec__list li + li {
+    border-top: 1px solid var(--line);
+  }
+  .sec__item {
+    display: grid;
+    grid-template-columns: 112px 1fr;
+    gap: 0.9rem;
+    align-items: center;
+    padding: 0.9rem 0;
+    text-decoration: none;
+  }
+  .sec__thumb {
+    aspect-ratio: 16 / 10;
+    border-radius: 8px;
+    overflow: hidden;
+    background: var(--indigo-950);
+  }
+  .sec__thumb :global(img) {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    transition: transform 0.4s var(--ease);
+  }
+  .sec__item:hover .sec__thumb :global(img) {
+    transform: scale(1.05);
+  }
+  .sec__text {
+    display: grid;
+    gap: 0.25rem;
+  }
+  .sec__label {
+    font-family: var(--font-ui);
+    font-size: 0.7rem;
+    font-weight: 700;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    color: var(--crimson-text);
+  }
+  .sec__title {
+    font-family: var(--font-head);
+    font-weight: var(--head-weight);
+    text-transform: var(--head-transform);
+    letter-spacing: var(--head-tracking);
+    font-size: 1.12rem;
+    line-height: 1.1;
+    display: -webkit-box;
+    -webkit-line-clamp: 3;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+  }
+  .sec__item:hover .sec__title {
+    text-decoration: underline;
+    text-decoration-thickness: 1px;
+  }
+  .sec__meta {
+    display: flex;
+    gap: 0.7rem;
+    font-family: var(--font-ui);
+    font-size: 0.76rem;
+    color: var(--text-mute);
+  }
+  .sec__views {
+    color: var(--teal);
+    font-weight: 700;
+  }
+</style>

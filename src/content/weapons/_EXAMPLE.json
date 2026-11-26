@@ -1,0 +1,32 @@
+{
+  "_help": "HOW TO ADD A WEAPON: copy this file, rename it (e.g. carbine-rifle.json), fill in what you have CONFIRMED, delete the _help line, save and push. Stats are 0-100 bars.",
+  "name": "Carbine Rifle",
+  "category": "assault-rifles",
+  "summary": "Optional answer sentence. Leave out to auto-write it.",
+  "ammo": "5.56mm",
+  "magazine": 30,
+  "price": 13000,
+  "location": "Where to get it, e.g. \"Ammu-Nation after the first chapter\"",
+  "attachments": [
+    "Suppressor",
+    "Extended magazine",
+    "Scope"
+  ],
+  "stats": {
+    "damage": 70,
+    "fireRate": 65,
+    "range": 60,
+    "accuracy": 62
+  },
+  "tier": "A",
+  "images": [
+    {
+      "src": "/images/weapons/carbine-rifle-1.webp",
+      "alt": "Carbine Rifle in the weapon wheel"
+    }
+  ],
+  "youtubeId": "AbCdEfGhIjK",
+  "faq": [],
+  "confirmedIn": "game",
+  "lastVerified": "2026-11-26"
+}

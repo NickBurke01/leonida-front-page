@@ -1,0 +1,15 @@
+{
+  "name": "Sample Lead",
+  "role": "Protagonist (sample)",
+  "summary": "SAMPLE: a spoiler-free one-line introduction to the character goes here.",
+  "bio": "SAMPLE: a longer spoiler-free description.",
+  "spoiler": true,
+  "spoilerText": "SAMPLE spoiler: story details are hidden until the reader reveals them.",
+  "relatedCharacters": [
+    "sample-partner"
+  ],
+  "images": [],
+  "sample": true,
+  "confirmedIn": "not-confirmed",
+  "lastVerified": "2026-11-26"
+}

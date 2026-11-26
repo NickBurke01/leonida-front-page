@@ -1,0 +1,274 @@
+---
+/**
+ * Vehicle / weapon entry page: the answer first, then spec sheet, stat bars, video, screenshots,
+ * FAQ and a related strip (3-5+ internal links).
+ */
+import Breadcrumbs from '../Breadcrumbs.astro';
+import FeaturedVideo from '../FeaturedVideo.astro';
+import WatchNext from '../WatchNext.astro';
+import StatBars from './StatBars.astro';
+import TierBadge from './TierBadge.astro';
+import Confirmed from './Confirmed.astro';
+import EntryCard from './EntryCard.astro';
+import Faq from './Faq.astro';
+import { VEHICLE_CLASSES, WEAPON_CATEGORIES, VEHICLE_STATS, WEAPON_STATS } from '~/config/database';
+import { money, mph, vehicleAnswer, weaponAnswer, type Vehicle, type Weapon } from '~/lib/database';
+
+type Props = { kind: 'vehicle'; entry: Vehicle; related: Vehicle[] } | { kind: 'weapon'; entry: Weapon; related: Weapon[] };
+const props = Astro.props;
+const isVehicle = props.kind === 'vehicle';
+const d = props.entry.data as any;
+const base = isVehicle ? '/vehicles/' : '/weapons/';
+const groupKey = isVehicle ? d.class : d.category;
+const groupLabel = isVehicle ? VEHICLE_CLASSES[d.class as keyof typeof VEHICLE_CLASSES] : WEAPON_CATEGORIES[d.category as keyof typeof WEAPON_CATEGORIES];
+const answer = isVehicle ? vehicleAnswer(d) : weaponAnswer(d);
+const labels = isVehicle ? VEHICLE_STATS : WEAPON_STATS;
+const NC = 'Not confirmed yet';
+const specs: [string, string | number | null | undefined][] = isVehicle
+  ? [['Class', groupLabel], ['Manufacturer', d.manufacturer], ['Based on (real life)', d.realLife], ['Top speed', mph(d.topSpeedMph)], ['Price', money(d.price) ? `${money(d.price)}${d.priceNote ? ` (${d.priceNote})` : ''}` : null], ['Seats', d.seats], ['Where to find it', d.location]]
+  : [['Category', groupLabel], ['Ammo', d.ammo], ['Magazine', d.magazine], ['Price', money(d.price)], ['Where to get it', d.location], ['Attachments', d.attachments.length ? d.attachments.join(', ') : null]];
+const crumbs = [{ name: 'Home', href: '/' }, { name: isVehicle ? 'Vehicles' : 'Weapons', href: base }, { name: groupLabel, href: `${base}?${isVehicle ? 'class' : 'category'}=${groupKey}` }, { name: d.name, href: `${base}${props.entry.id}/` }];
+const placeholder = isVehicle ? '/images/placeholders/db-vehicle.webp' : '/images/placeholders/db-weapon.webp';
+const hero = d.images[0];
+---
+<article class="dbx">
+  <header class="dbx__head">
+    <div class="wrap">
+      <Breadcrumbs items={crumbs} />
+      <div class="dbx__titlerow">
+        <TierBadge tier={d.tier} size="l" />
+        <div>
+          <span class="dbx__group">{groupLabel}</span>
+          <h1>{d.name}</h1>
+        </div>
+      </div>
+      <p class="dbx__answer">{answer}</p>
+      <Confirmed confirmedIn={d.confirmedIn} lastVerified={d.lastVerified} sample={d.sample} />
+    </div>
+  </header>
+
+  <div class="wrap dbx__grid">
+    <div class="dbx__main">
+      <div class="dbx__hero">
+        <img src={hero?.src ?? placeholder} alt={hero?.alt ?? ''} width="1600" height="900" loading="eager" decoding="async" />
+      </div>
+
+      <section class="dbx__panel" aria-labelledby="specs-h">
+        <h2 id="specs-h">{isVehicle ? 'Specs' : 'Weapon stats'}</h2>
+        <div class="dbx__specs">
+          <dl class="dbx__sheet">
+            {specs.map(([k, v]) => (
+              <div><dt>{k}</dt><dd class:list={{ na: v == null || v === '' }}>{v == null || v === '' ? NC : v}</dd></div>
+            ))}
+          </dl>
+          <div class="dbx__bars">
+            <StatBars stats={d.stats} labels={labels} />
+            <a class="dbx__compare" href={`${base}compare/?a=${props.entry.id}`}>Compare with another {isVehicle ? 'vehicle' : 'weapon'} →</a>
+          </div>
+        </div>
+      </section>
+
+      <section class="dbx__video" id="video" aria-label="Video">
+        <FeaturedVideo videoId={d.youtubeId} title={`${d.name} in GTA 6`} compact />
+      </section>
+
+      {d.images.length > 1 && (
+        <section aria-labelledby="shots-h">
+          <h2 id="shots-h" class="dbx__h2">Screenshots</h2>
+          <div class="dbx__shots">
+            {d.images.slice(1).map((im: { src: string; alt: string }) => (
+              <a href={im.src} target="_blank" rel="noopener"><img src={im.src} alt={im.alt} width="800" height="450" loading="lazy" decoding="async" /></a>
+            ))}
+          </div>
+        </section>
+      )}
+
+      <Faq items={d.faq} />
+    </div>
+    <aside class="dbx__aside">
+      <div class="dbx__sticky"><WatchNext exclude={d.youtubeId} /></div>
+    </aside>
+  </div>
+</article>
+
+{props.related.length > 0 && (
+  <section class="section" aria-labelledby="rel-h">
+    <div class="wrap">
+      <div class="section-head">
+        <div><span class="kicker">Related</span><h2 id="rel-h">More like the {d.name}</h2></div>
+        <a class="more" href={base}>All {isVehicle ? 'vehicles' : 'weapons'}</a>
+      </div>
+      <div class="dbx__related">
+        {(props.related as any[]).map((r) => (
+          <EntryCard
+            headingLevel="h3"
+            href={`${base}${r.id}/`}
+            name={r.data.name}
+            group={isVehicle ? r.data.class : r.data.category}
+            groupLabel={isVehicle ? VEHICLE_CLASSES[r.data.class as keyof typeof VEHICLE_CLASSES] : WEAPON_CATEGORIES[r.data.category as keyof typeof WEAPON_CATEGORIES]}
+            tier={r.data.tier}
+            image={r.data.images[0]?.src}
+            placeholder={placeholder}
+            stats={r.data.stats}
+            statLabels={labels}
+            statKeys={Object.keys(labels).slice(0, 2)}
+            sample={r.data.sample}
+          />
+        ))}
+      </div>
+    </div>
+  </section>
+)}
+
+<style>
+  .dbx__head {
+    position: relative;
+    padding-block: var(--space-xl) var(--space-l);
+    isolation: isolate;
+  }
+  .dbx__head::before {
+    content: '';
+    position: absolute;
+    inset: 0 0 -30%;
+    z-index: -1;
+    background: radial-gradient(45% 80% at 20% 0%, rgb(154 32 101 / 0.24), transparent 70%);
+  }
+  .dbx__titlerow {
+    display: flex;
+    align-items: center;
+    gap: var(--space-s);
+    margin-top: var(--space-m);
+  }
+  .dbx__group {
+    font-family: var(--font-ui);
+    font-size: 0.75rem;
+    font-weight: 700;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    color: var(--crimson-text);
+  }
+  .dbx h1 {
+    font-size: var(--step-5);
+  }
+  .dbx__answer {
+    margin-block: var(--space-s) var(--space-m);
+    max-width: 64ch;
+    font-size: var(--step-1);
+    line-height: 1.5;
+    color: var(--cream);
+  }
+  .dbx__grid {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) 320px;
+    gap: clamp(1.5rem, 1rem + 3vw, 4rem);
+    align-items: start;
+  }
+  .dbx__main {
+    display: grid;
+    gap: var(--space-l);
+  }
+  .dbx__hero {
+    aspect-ratio: 16 / 9;
+    border-radius: var(--radius-l);
+    overflow: hidden;
+    background: var(--indigo-950);
+    border: 1px solid var(--line);
+  }
+  .dbx__hero img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+  }
+  .dbx__panel {
+    padding: var(--space-m);
+    border: 1px solid var(--line);
+    border-radius: var(--radius-l);
+    background: var(--surface);
+  }
+  .dbx__panel h2,
+  .dbx__h2 {
+    font-size: var(--step-2);
+    margin-bottom: var(--space-s);
+  }
+  .dbx__specs {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: var(--space-l);
+  }
+  .dbx__sheet {
+    display: grid;
+    margin: 0;
+  }
+  .dbx__sheet div {
+    display: grid;
+    grid-template-columns: 9.5rem 1fr;
+    gap: 0.75rem;
+    padding: 0.6rem 0;
+    border-bottom: 1px solid var(--line);
+    font-family: var(--font-ui);
+    font-size: 0.9rem;
+  }
+  .dbx__sheet dt {
+    color: var(--text-mute);
+  }
+  .dbx__sheet dd {
+    margin: 0;
+    font-weight: 600;
+  }
+  .dbx__sheet dd.na {
+    font-weight: 400;
+    font-style: italic;
+    color: var(--text-mute);
+  }
+  .dbx__bars {
+    display: grid;
+    gap: var(--space-m);
+    align-content: start;
+    padding-top: 0.4rem;
+  }
+  .dbx__compare {
+    font-family: var(--font-ui);
+    font-size: 0.88rem;
+    font-weight: 700;
+    color: var(--teal);
+    text-decoration: none;
+  }
+  .dbx__compare:hover {
+    text-decoration: underline;
+  }
+  .dbx__shots {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+    gap: var(--space-s);
+  }
+  .dbx__shots img {
+    border-radius: var(--radius-m);
+    aspect-ratio: 16 / 9;
+    object-fit: cover;
+  }
+  .dbx__sticky {
+    position: sticky;
+    top: calc(var(--masthead-h) + 1.5rem);
+  }
+  .dbx__related {
+    display: grid;
+    gap: var(--space-s);
+    grid-template-columns: repeat(auto-fill, minmax(min(100%, 230px), 1fr));
+  }
+  @media (max-width: 1020px) {
+    .dbx__grid {
+      grid-template-columns: 1fr;
+    }
+    .dbx__sticky {
+      position: static;
+    }
+  }
+  @media (max-width: 700px) {
+    .dbx__specs {
+      grid-template-columns: 1fr;
+    }
+    .dbx__sheet div {
+      grid-template-columns: 8rem 1fr;
+    }
+  }
+</style>

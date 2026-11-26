@@ -1,0 +1,71 @@
+---
+import BaseLayout from '~/layouts/BaseLayout.astro';
+import Breadcrumbs from '~/components/Breadcrumbs.astro';
+import DbHub from '~/components/db/DbHub.astro';
+import DbEmpty from '~/components/db/DbEmpty.astro';
+import EntryCard from '~/components/db/EntryCard.astro';
+import SubscribeBand from '~/components/SubscribeBand.astro';
+import { WEAPON_CATEGORIES, WEAPON_STATS } from '~/config/database';
+import { getWeapons, money } from '~/lib/database';
+import { breadcrumbs, itemList } from '~/lib/seo';
+
+const weapons = await getWeapons();
+const crumbs = [{ name: 'Home', href: '/' }, { name: 'Weapons', href: '/weapons/' }];
+const groups = Object.entries(WEAPON_CATEGORIES).map(([key, label]) => ({ key, label, count: weapons.filter((w) => w.data.category === key).length }));
+const real = weapons.filter((w) => !w.data.sample);
+---
+<BaseLayout kind="hub"
+  title="GTA 6 Weapons: Damage, Fire Rate, Location & Tier List"
+  description="Every GTA 6 weapon with damage, fire rate, range and accuracy as bars, where to get it, attachments and tier rank. Filter, sort and compare."
+  jsonLd={[breadcrumbs(crumbs), ...(real.length ? [itemList('GTA 6 weapons', real.map((w) => ({ name: w.data.name, href: `/weapons/${w.id}/` })))] : [])]}
+  noindex={real.length === 0}
+>
+  <section class="page-head">
+    <div class="wrap">
+      <Breadcrumbs items={crumbs} />
+      <h1>GTA 6 Weapons</h1>
+      <p class="page-head__lede">Every weapon we've confirmed: damage, fire rate, range and accuracy, where to get it, attachments and where it ranks.</p>
+    </div>
+  </section>
+  <section class="section section--tight">
+    <div class="wrap">
+      {weapons.length === 0 ? (
+        <DbEmpty noun="weapon" source="weapons-empty" />
+      ) : (
+        <DbHub
+          groups={groups}
+          noun="weapons"
+          compareHref="/weapons/compare/"
+          tierHref="/tier-lists/#weapons"
+          sorts={[
+            { key: 'tier', label: 'Best first (tier)' },
+            { key: 'damage', label: 'Damage', dir: 'desc' },
+            { key: 'firerate', label: 'Fire rate', dir: 'desc' },
+            { key: 'price', label: 'Price: low to high' },
+            { key: 'name', label: 'Name A-Z' },
+          ]}
+        >
+          {weapons.map((w) => (
+            <EntryCard
+              href={`/weapons/${w.id}/`}
+              name={w.data.name}
+              group={w.data.category}
+              groupLabel={WEAPON_CATEGORIES[w.data.category]}
+              tier={w.data.tier}
+              image={w.data.images[0]?.src}
+              imageAlt={w.data.images[0]?.alt}
+              placeholder="/images/placeholders/db-weapon.webp"
+              stats={w.data.stats}
+              statLabels={WEAPON_STATS}
+              statKeys={['damage', 'fireRate', 'range']}
+              meta={[w.data.ammo, money(w.data.price)].filter(Boolean).join(' · ') || null}
+              sample={w.data.sample}
+              sort={{ damage: w.data.stats.damage, firerate: w.data.stats.fireRate, price: w.data.price }}
+            />
+          ))}
+        </DbHub>
+      )}
+    </div>
+  </section>
+  <SubscribeBand />
+</BaseLayout>

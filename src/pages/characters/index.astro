@@ -1,0 +1,51 @@
+---
+import BaseLayout from '~/layouts/BaseLayout.astro';
+import Breadcrumbs from '~/components/Breadcrumbs.astro';
+import DbHub from '~/components/db/DbHub.astro';
+import DbEmpty from '~/components/db/DbEmpty.astro';
+import EntryCard from '~/components/db/EntryCard.astro';
+import SubscribeBand from '~/components/SubscribeBand.astro';
+import { getCharacters } from '~/lib/database';
+import { breadcrumbs } from '~/lib/seo';
+
+const chars = await getCharacters();
+const crumbs = [{ name: 'Home', href: '/' }, { name: 'Characters', href: '/characters/' }];
+const roles = [...new Set(chars.map((c) => c.data.role))];
+const slug = (s: string) => s.toLowerCase().replace(/[^a-z0-9]+/g, '-');
+---
+<BaseLayout kind="hub"
+  title="GTA 6 Characters: Who's Who in Leonida"
+  description="Every confirmed GTA 6 character: who they are, how they fit into the story, and where they appear. Story spoilers are hidden until you choose to see them."
+  jsonLd={[breadcrumbs(crumbs)]}
+  noindex={chars.filter((c) => !c.data.sample).length === 0}
+>
+  <section class="page-head">
+    <div class="wrap">
+      <Breadcrumbs items={crumbs} />
+      <h1>GTA 6 Characters</h1>
+      <p class="page-head__lede">Who's who in Leonida. Spoiler-safe by default: story details stay hidden until you tap to reveal them.</p>
+    </div>
+  </section>
+  <section class="section section--tight">
+    <div class="wrap">
+      {chars.length === 0 ? <DbEmpty noun="character" source="characters-empty" /> : (
+        <DbHub noun="characters" groups={roles.map((r) => ({ key: slug(r), label: r, count: chars.filter((c) => c.data.role === r).length }))} sorts={[{ key: 'name', label: 'Name A-Z' }]}>
+          {chars.map((c) => (
+            <EntryCard
+              href={`/characters/${c.id}/`}
+              name={c.data.name}
+              group={slug(c.data.role)}
+              groupLabel={c.data.role}
+              image={c.data.images[0]?.src}
+              imageAlt={c.data.images[0]?.alt}
+              placeholder="/images/placeholders/db-character.webp"
+              meta={c.data.summary ?? null}
+              sample={c.data.sample}
+            />
+          ))}
+        </DbHub>
+      )}
+    </div>
+  </section>
+  <SubscribeBand />
+</BaseLayout>

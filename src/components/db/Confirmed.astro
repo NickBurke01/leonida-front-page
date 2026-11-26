@@ -1,0 +1,60 @@
+---
+/** Where the facts come from and when they were last checked. Shown on every database entry. */
+import { CONFIRMED, type Confirmed as C } from '~/config/database';
+import { formatDate } from '~/lib/format';
+interface Props {
+  confirmedIn: C;
+  lastVerified: Date;
+  sample?: boolean;
+}
+const { confirmedIn, lastVerified, sample = false } = Astro.props;
+---
+<p class:list={['cf', `cf--${confirmedIn}`]}>
+  {sample && <span class="cf__sample">Sample entry</span>}
+  <span class="cf__dot" aria-hidden="true"></span>
+  <span>{CONFIRMED[confirmedIn]}</span>
+  <span class="cf__sep" aria-hidden="true">·</span>
+  <span>Last verified <time datetime={lastVerified.toISOString().slice(0, 10)}>{formatDate(lastVerified)}</time></span>
+</p>
+
+<style>
+  .cf {
+    display: inline-flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 0.45rem;
+    padding: 0.35rem 0.75rem;
+    border: 1px solid var(--line);
+    border-radius: var(--radius-pill);
+    font-family: var(--font-ui);
+    font-size: 0.78rem;
+    color: var(--text-dim);
+    background: rgb(253 242 216 / 0.03);
+  }
+  .cf__dot {
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    background: var(--teal);
+  }
+  .cf--rockstar .cf__dot,
+  .cf--trailer .cf__dot {
+    background: var(--amber);
+  }
+  .cf--not-confirmed .cf__dot {
+    background: var(--cream-mute);
+  }
+  .cf__sep {
+    opacity: 0.5;
+  }
+  .cf__sample {
+    padding: 0.1rem 0.45rem;
+    border-radius: 4px;
+    background: var(--amber);
+    color: var(--ink);
+    font-weight: 800;
+    font-size: 0.66rem;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+  }
+</style>

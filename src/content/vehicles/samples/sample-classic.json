@@ -1,0 +1,27 @@
+{
+  "name": "Sample Classic",
+  "class": "sports-classics",
+  "manufacturer": "Sample",
+  "realLife": "1960s European sports car",
+  "topSpeedMph": 149,
+  "price": 410000,
+  "location": "SAMPLE: replace with where you found it in-game",
+  "seats": 2,
+  "stats": {
+    "speed": 70,
+    "acceleration": 64,
+    "braking": 62,
+    "handling": 71
+  },
+  "tier": "B",
+  "images": [],
+  "faq": [
+    {
+      "q": "Where do you find the Sample Classic?",
+      "a": "SAMPLE answer: replace with the confirmed location."
+    }
+  ],
+  "sample": true,
+  "confirmedIn": "not-confirmed",
+  "lastVerified": "2026-11-26"
+}

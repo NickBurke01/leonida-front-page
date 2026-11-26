@@ -1,0 +1,167 @@
+---
+import { render } from 'astro:content';
+import BaseLayout from '~/layouts/BaseLayout.astro';
+import Breadcrumbs from '~/components/Breadcrumbs.astro';
+import FeaturedVideo from '~/components/FeaturedVideo.astro';
+import WatchNext from '~/components/WatchNext.astro';
+import Confirmed from '~/components/db/Confirmed.astro';
+import Spoiler from '~/components/db/Spoiler.astro';
+import Faq from '~/components/db/Faq.astro';
+import SubscribeBand from '~/components/SubscribeBand.astro';
+import { getMissions, type Mission } from '~/lib/database';
+import { breadcrumbs, faqPage, videoObject } from '~/lib/seo';
+
+export async function getStaticPaths() {
+  return (await getMissions()).map((m) => ({ params: { slug: m.id }, props: { entry: m } }));
+}
+interface Props {
+  entry: Mission;
+}
+const { entry } = Astro.props;
+const { Content } = await render(entry);
+const all = await getMissions();
+const i = all.findIndex((m) => m.id === entry.id);
+const prev = all[i - 1];
+const next = all[i + 1];
+const d = entry.data;
+const href = `/missions/${entry.id}/`;
+const crumbs = [{ name: 'Home', href: '/' }, { name: 'Missions', href: '/missions/' }, { name: d.name, href }];
+const lede = d.summary ?? `Walkthrough for ${d.name} in GTA 6.`;
+const ld: object[] = [breadcrumbs(crumbs)];
+if (d.faq.length) ld.push(faqPage(d.faq));
+if (d.youtubeId) ld.push(videoObject({ id: d.youtubeId, title: `${d.name} walkthrough`, description: lede }));
+---
+<BaseLayout kind="entry" title={`${d.name} Walkthrough: GTA 6 Mission Guide`} description={lede.slice(0, 165)} type="article" noindex={d.sample} search={!d.sample} jsonLd={ld} modified={d.lastVerified}>
+  <article class="ms">
+    <header class="ms__head">
+      <div class="wrap">
+        <Breadcrumbs items={crumbs} />
+        {d.chapter && <span class="ms__ch">{d.chapter}{d.order ? ` · Mission ${d.order}` : ''}</span>}
+        <h1>{d.name}</h1>
+        <p class="ms__lede">{lede}</p>
+        <Confirmed confirmedIn={d.confirmedIn} lastVerified={d.lastVerified} sample={d.sample} />
+      </div>
+    </header>
+    <div class="wrap ms__grid">
+      <div class="ms__main">
+        <dl class="ms__facts">
+          {d.giver && <div><dt>Given by</dt><dd>{d.giver}</dd></div>}
+          {d.rewards && <div><dt>Rewards</dt><dd>{d.rewards}</dd></div>}
+        </dl>
+        {d.objectives.length > 0 && (
+          <section class="ms__obj" aria-labelledby="obj-h">
+            <h2 id="obj-h">Objectives</h2>
+            <ol>{d.objectives.map((o) => <li>{o}</li>)}</ol>
+          </section>
+        )}
+        <FeaturedVideo videoId={d.youtubeId} title={`${d.name} walkthrough`} compact />
+        {d.spoiler ? (
+          <Spoiler label="Full walkthrough (spoilers)"><div class="prose"><Content /></div></Spoiler>
+        ) : (
+          <div class="prose"><Content /></div>
+        )}
+        <Faq items={d.faq} />
+        <nav class="ms__pn" aria-label="Mission order">
+          {prev ? <a href={`/missions/${prev.id}/`}>← {prev.data.name}</a> : <span></span>}
+          {next && <a href={`/missions/${next.id}/`}>{next.data.name} →</a>}
+        </nav>
+      </div>
+      <aside><div class="ms__sticky"><WatchNext exclude={d.youtubeId} /></div></aside>
+    </div>
+  </article>
+  <SubscribeBand />
+</BaseLayout>
+
+<style>
+  .ms__head {
+    padding-block: var(--space-xl) var(--space-l);
+  }
+  .ms__ch {
+    display: block;
+    margin-top: var(--space-m);
+    font-family: var(--font-ui);
+    font-size: 0.75rem;
+    font-weight: 700;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    color: var(--amber);
+  }
+  .ms h1 {
+    font-size: var(--step-5);
+    margin-top: 0.3rem;
+  }
+  .ms__lede {
+    margin-block: var(--space-s) var(--space-m);
+    max-width: 62ch;
+    font-size: var(--step-1);
+    line-height: 1.5;
+  }
+  .ms__grid {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) 320px;
+    gap: clamp(1.5rem, 1rem + 3vw, 4rem);
+    align-items: start;
+  }
+  .ms__main {
+    display: grid;
+    gap: var(--space-l);
+  }
+  .ms__facts {
+    display: flex;
+    flex-wrap: wrap;
+    gap: var(--space-s);
+    margin: 0;
+  }
+  .ms__facts div {
+    padding: 0.8rem 1rem;
+    border: 1px solid var(--line);
+    border-radius: var(--radius-m);
+    background: var(--surface);
+    font-family: var(--font-ui);
+  }
+  .ms__facts dt {
+    font-size: 0.72rem;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    color: var(--text-mute);
+  }
+  .ms__facts dd {
+    margin: 0;
+    font-weight: 700;
+  }
+  .ms__obj h2 {
+    font-size: var(--step-2);
+    margin-bottom: 0.6rem;
+  }
+  .ms__obj ol {
+    padding-left: 1.3rem;
+    color: var(--text-dim);
+    display: grid;
+    gap: 0.4rem;
+  }
+  .ms__pn {
+    display: flex;
+    justify-content: space-between;
+    gap: var(--space-s);
+    padding-top: var(--space-m);
+    border-top: 1px solid var(--line);
+    font-family: var(--font-ui);
+    font-weight: 700;
+  }
+  .ms__pn a {
+    text-decoration: none;
+    color: var(--teal);
+  }
+  .ms__sticky {
+    position: sticky;
+    top: calc(var(--masthead-h) + 1.5rem);
+  }
+  @media (max-width: 1020px) {
+    .ms__grid {
+      grid-template-columns: 1fr;
+    }
+    .ms__sticky {
+      position: static;
+    }
+  }
+</style>

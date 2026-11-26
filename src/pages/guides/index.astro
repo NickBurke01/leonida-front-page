@@ -1,0 +1,30 @@
+---
+import BaseLayout from '~/layouts/BaseLayout.astro';
+import Breadcrumbs from '~/components/Breadcrumbs.astro';
+import GuideHub from '~/components/GuideHub.astro';
+import SubscribeBand from '~/components/SubscribeBand.astro';
+import { getGuides } from '~/lib/content';
+import { breadcrumbs } from '~/lib/seo';
+
+const guides = await getGuides();
+const crumbs = [{ name: 'Home', href: '/' }, { name: 'Guides', href: '/guides/' }];
+---
+<BaseLayout kind="hub"
+  title="GTA 6 Guides: Money, Secrets, Map, Vehicles & Weapons"
+  description="Every Leonida Front Page GTA 6 guide in one place: money methods, hidden secrets and easter eggs, beginner tips, map, vehicle and weapon guides, each paired with a video."
+  jsonLd={[breadcrumbs(crumbs)]}
+>
+  <section class="page-head">
+    <div class="wrap">
+      <Breadcrumbs items={crumbs} />
+      <h1>GTA 6 Guides</h1>
+      <p class="page-head__lede">Money, secrets, the map and the gear worth having. Every guide pairs with a long-form video, so you can read the part you need or watch the full breakdown.</p>
+    </div>
+  </section>
+  <section class="section section--tight">
+    <div class="wrap">
+      <GuideHub guides={guides} all={guides} />
+    </div>
+  </section>
+  <SubscribeBand />
+</BaseLayout>

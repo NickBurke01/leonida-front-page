@@ -1,0 +1,79 @@
+---
+import BaseLayout from '~/layouts/BaseLayout.astro';
+---
+<BaseLayout title="Story not found" description="This page isn't on the front page. Head back to the latest GTA 6 guides and news." noindex search={false}>
+  <section class="nf">
+    <div class="nf__tape" aria-hidden="true"><span>Crime scene · Do not cross · Crime scene · Do not cross · Crime scene · Do not cross · Crime scene · Do not cross</span></div>
+    <div class="wrap nf__inner">
+      <span class="kicker">Error 404</span>
+      <h1>Story not found</h1>
+      <p>This page was pulled from the edition, or it never ran. The rest of the front page is still here.</p>
+      <div class="nf__links">
+        <a class="nf__btn nf__btn--primary" href="/">Back to the front page</a>
+        <a class="nf__btn" href="/guides/">Browse the guides</a>
+      </div>
+    </div>
+  </section>
+</BaseLayout>
+
+<style>
+  .nf {
+    position: relative;
+    padding-block: var(--space-3xl);
+    overflow: hidden;
+    text-align: center;
+  }
+  .nf__tape {
+    position: absolute;
+    left: -10%;
+    right: -10%;
+    top: 18%;
+    transform: rotate(-6deg);
+    background: var(--amber);
+    color: var(--ink);
+    padding: 0.5rem 0;
+    font-family: var(--font-head);
+    font-weight: 800;
+    letter-spacing: 0.18em;
+    text-transform: uppercase;
+    white-space: nowrap;
+    opacity: 0.9;
+    box-shadow: 0 10px 30px -10px rgb(0 0 0 / 0.7);
+  }
+  .nf__inner {
+    position: relative;
+    display: grid;
+    justify-items: center;
+    gap: var(--space-s);
+    padding-top: var(--space-2xl);
+  }
+  .nf h1 {
+    font-size: var(--step-5);
+  }
+  .nf p {
+    color: var(--text-dim);
+    max-width: 46ch;
+  }
+  .nf__links {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
+    gap: var(--space-s);
+    margin-top: var(--space-s);
+  }
+  .nf__btn {
+    display: inline-flex;
+    align-items: center;
+    min-height: 44px;
+    padding: 0 1.2rem;
+    border-radius: var(--radius-pill);
+    border: 1.5px solid var(--line-strong);
+    font-family: var(--font-ui);
+    font-weight: 700;
+    text-decoration: none;
+  }
+  .nf__btn--primary {
+    background: var(--crimson);
+    border-color: var(--crimson);
+  }
+</style>

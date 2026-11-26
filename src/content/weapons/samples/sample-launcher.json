@@ -1,0 +1,21 @@
+{
+  "name": "Sample Launcher",
+  "category": "heavy",
+  "ammo": "Rocket",
+  "magazine": 1,
+  "price": 45000,
+  "location": "SAMPLE: replace with where to get it",
+  "attachments": [],
+  "stats": {
+    "damage": 100,
+    "fireRate": 8,
+    "range": 70,
+    "accuracy": 50
+  },
+  "tier": "S",
+  "images": [],
+  "faq": [],
+  "sample": true,
+  "confirmedIn": "not-confirmed",
+  "lastVerified": "2026-11-26"
+}

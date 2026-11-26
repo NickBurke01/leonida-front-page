@@ -1,0 +1,27 @@
+{
+  "name": "Sample Roadster",
+  "class": "super",
+  "manufacturer": "Sample",
+  "realLife": "Exotic mid-engine supercar",
+  "topSpeedMph": 212,
+  "price": 2100000,
+  "location": "SAMPLE: replace with where you found it in-game",
+  "seats": 2,
+  "stats": {
+    "speed": 96,
+    "acceleration": 92,
+    "braking": 80,
+    "handling": 85
+  },
+  "tier": "S",
+  "images": [],
+  "faq": [
+    {
+      "q": "Where do you find the Sample Roadster?",
+      "a": "SAMPLE answer: replace with the confirmed location."
+    }
+  ],
+  "sample": true,
+  "confirmedIn": "not-confirmed",
+  "lastVerified": "2026-11-26"
+}

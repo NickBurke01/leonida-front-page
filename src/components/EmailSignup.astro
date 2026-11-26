@@ -1,0 +1,128 @@
+---
+/**
+ * Inline email signup (never a pop-up). Uses Netlify Forms: no extra account, submissions appear in
+ * Netlify > Forms > "newsletter". Includes a hidden honeypot field to stop bots.
+ */
+interface Props {
+  variant?: 'band' | 'compact';
+  title?: string;
+  copy?: string;
+  source?: string;
+}
+const {
+  variant = 'band',
+  title = 'Get the next edition in your inbox',
+  copy = 'New guides, database updates and the biggest GTA 6 news. One email when it matters, no spam.',
+  source = 'site',
+} = Astro.props;
+const id = `nl-${Math.random().toString(36).slice(2, 8)}`;
+---
+<section class:list={['es', `es--${variant}`]} aria-labelledby={`${id}-t`}>
+  <div class="es__text">
+    {variant === 'band' && <span class="kicker">The newsletter</span>}
+    <p class="es__title" id={`${id}-t`}>{title}</p>
+    <p class="es__copy">{copy}</p>
+  </div>
+  <form class="es__form" name="newsletter" method="POST" action="/subscribed/" data-netlify="true" netlify-honeypot="company">
+    <input type="hidden" name="form-name" value="newsletter" />
+    <input type="hidden" name="source" value={source} />
+    <p class="es__hp" aria-hidden="true"><label>Company <input name="company" tabindex="-1" autocomplete="off" /></label></p>
+    <label class="sr-only" for={`${id}-e`}>Email address</label>
+    <input id={`${id}-e`} class="es__input" type="email" name="email" required autocomplete="email" placeholder="you@example.com" />
+    <button class="es__btn" type="submit">Sign up</button>
+    <p class="es__fine">By signing up you agree to get emails from Leonida Front Page. Unsubscribe any time. <a href="/privacy/">Privacy</a></p>
+  </form>
+</section>
+
+<style>
+  .es {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: var(--space-l);
+    align-items: center;
+    padding: clamp(1.5rem, 1rem + 2vw, 2.5rem);
+    border: 1px solid var(--line);
+    border-radius: var(--radius-l);
+    background:
+      radial-gradient(60% 120% at 100% 0%, rgb(61 210 204 / 0.1), transparent 60%),
+      var(--surface);
+  }
+  .es--compact {
+    grid-template-columns: 1fr;
+    gap: var(--space-s);
+    padding: var(--space-m);
+  }
+  .es__title {
+    font-family: var(--font-head);
+    font-weight: var(--head-weight);
+    text-transform: var(--head-transform);
+    letter-spacing: var(--head-tracking);
+    font-size: var(--step-3);
+    line-height: 1.05;
+    margin-top: 0.4rem;
+  }
+  .es--compact .es__title {
+    font-size: var(--step-1);
+    margin: 0;
+  }
+  .es__copy {
+    margin-top: 0.5rem;
+    color: var(--text-dim);
+  }
+  .es--compact .es__copy {
+    font-size: 0.9rem;
+  }
+  .es__form {
+    display: grid;
+    grid-template-columns: 1fr auto;
+    gap: 0.6rem;
+  }
+  .es__input {
+    min-height: 48px;
+    padding: 0 1rem;
+    border: 1px solid var(--line-strong);
+    border-radius: var(--radius-pill);
+    background: var(--bg);
+    font-family: var(--font-ui);
+  }
+  .es__input:focus {
+    outline: none;
+    border-color: var(--amber);
+  }
+  .es__btn {
+    min-height: 48px;
+    padding: 0 1.4rem;
+    border: 0;
+    border-radius: var(--radius-pill);
+    background: var(--crimson);
+    color: var(--cream);
+    font-family: var(--font-ui);
+    font-weight: 700;
+  }
+  .es__btn:hover {
+    background: #e2135b;
+  }
+  .es__fine {
+    grid-column: 1 / -1;
+    font-family: var(--font-ui);
+    font-size: 0.74rem;
+    color: var(--text-mute);
+  }
+  .es__fine a {
+    color: var(--text-dim);
+  }
+  .es__hp {
+    position: absolute;
+    left: -9999px;
+  }
+  @media (max-width: 820px) {
+    .es {
+      grid-template-columns: 1fr;
+    }
+  }
+  @media (max-width: 420px) {
+    .es__form {
+      grid-template-columns: 1fr;
+    }
+  }
+</style>

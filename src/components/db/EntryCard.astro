@@ -1,0 +1,154 @@
+---
+/**
+ * Database card: image, name, class tag, tier and 2-3 stat bars.
+ * The data-* attributes power the hub's instant filter, search and sort.
+ */
+import StatBars from './StatBars.astro';
+import TierBadge from './TierBadge.astro';
+import type { Tier } from '~/config/database';
+
+interface Props {
+  href: string;
+  name: string;
+  group: string;
+  groupLabel: string;
+  tier?: Tier | null;
+  image?: string | null;
+  imageAlt?: string;
+  placeholder: string;
+  stats?: Record<string, number | null | undefined>;
+  statLabels?: Record<string, string>;
+  statKeys?: string[];
+  meta?: string | null;
+  sample?: boolean;
+  spoiler?: boolean;
+  sort?: Record<string, string | number | null | undefined>;
+  /** h2 in hub grids (right under the page title), h3 inside a section. */
+  headingLevel?: 'h2' | 'h3';
+}
+const { href, name, group, groupLabel, tier, image, imageAlt, placeholder, stats, statLabels, statKeys, meta, sample = false, spoiler = false, sort = {}, headingLevel = 'h2' } = Astro.props;
+const H = headingLevel;
+const tierRank = tier ? 'SABCD'.indexOf(tier) : 9;
+const dataSort = Object.fromEntries(Object.entries(sort).map(([k, v]) => [`data-sort-${k}`, v ?? '']));
+---
+<article
+  class:list={['ec', { 'ec--spoiler': spoiler }]}
+  data-entry
+  data-group={group}
+  data-name={name.toLowerCase()}
+  data-search={`${name} ${groupLabel} ${meta ?? ''}`.toLowerCase()}
+  data-sort-name={name.toLowerCase()}
+  data-sort-tier={tierRank}
+  {...dataSort}
+>
+  <div class="ec__media">
+    <img src={image ?? placeholder} alt={image ? imageAlt ?? name : ''} width="800" height="450" loading="lazy" decoding="async" />
+    {sample && <span class="ec__sample">Sample</span>}
+    {tier && <span class="ec__tier"><TierBadge tier={tier} size="s" /></span>}
+  </div>
+  <div class="ec__body">
+    <span class="ec__group">{groupLabel}</span>
+    <H class="ec__name"><a href={href}>{name}</a></H>
+    {meta && <p class="ec__meta">{meta}</p>}
+    {stats && statLabels && <StatBars stats={stats} labels={statLabels} only={statKeys} compact />}
+  </div>
+</article>
+
+<style>
+  .ec {
+    position: relative;
+    display: flex;
+    flex-direction: column;
+    background: var(--surface);
+    border: 1px solid var(--line);
+    border-radius: var(--radius-l);
+    overflow: hidden;
+    transition:
+      transform 0.25s var(--ease),
+      border-color 0.25s var(--ease),
+      box-shadow 0.25s var(--ease);
+  }
+  .ec:hover {
+    transform: translateY(-3px);
+    border-color: var(--line-strong);
+    box-shadow: var(--shadow-lift);
+  }
+  .ec:focus-within {
+    border-color: var(--amber);
+  }
+  .ec[hidden] {
+    display: none;
+  }
+  .ec__media {
+    position: relative;
+    aspect-ratio: 16 / 9;
+    background: var(--indigo-950);
+    overflow: hidden;
+  }
+  .ec__media img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    transition: transform 0.5s var(--ease);
+  }
+  .ec:hover .ec__media img {
+    transform: scale(1.04);
+  }
+  .ec--spoiler .ec__media img {
+    filter: blur(14px) saturate(0.6);
+    transform: scale(1.15);
+  }
+  .ec__tier {
+    position: absolute;
+    top: 0.6rem;
+    right: 0.6rem;
+  }
+  .ec__sample {
+    position: absolute;
+    top: 0.6rem;
+    left: 0.6rem;
+    padding: 0.15rem 0.5rem;
+    border-radius: 4px;
+    background: var(--amber);
+    color: var(--ink);
+    font-family: var(--font-ui);
+    font-size: 0.64rem;
+    font-weight: 800;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+  }
+  .ec__body {
+    display: grid;
+    gap: 0.45rem;
+    padding: 0.9rem 1rem 1.1rem;
+  }
+  .ec__group {
+    font-family: var(--font-ui);
+    font-size: 0.68rem;
+    font-weight: 700;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    color: var(--crimson-text);
+  }
+  .ec__name {
+    font-size: 1.3rem;
+    line-height: 1.08;
+  }
+  .ec__name a {
+    text-decoration: none;
+  }
+  .ec__name a::after {
+    content: '';
+    position: absolute;
+    inset: 0;
+    z-index: 1;
+  }
+  .ec__name a:focus-visible {
+    outline: none;
+  }
+  .ec__meta {
+    font-family: var(--font-ui);
+    font-size: 0.82rem;
+    color: var(--text-mute);
+  }
+</style>

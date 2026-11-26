@@ -1,0 +1,91 @@
+---
+import { LONG, SHORTS, SITE } from '~/config/site';
+import SubscribeButton from './SubscribeButton.astro';
+interface Props {
+  title?: string;
+}
+const { title = 'Get the complete picture' } = Astro.props;
+---
+<section class="band" aria-labelledby="band-title">
+  <div class="wrap band__inner" data-reveal>
+    <div class="band__art" aria-hidden="true"></div>
+    <div class="band__text">
+      <span class="kicker">Two channels, one front page</span>
+      <h2 id="band-title">{title}</h2>
+      <p>{SITE.tagline}</p>
+    </div>
+    <div class="band__ctas">
+      <SubscribeButton channel={LONG} label="Subscribe to Leonida Front Page" />
+      <SubscribeButton channel={SHORTS} variant="secondary" label="Get the Daily Shorts" />
+    </div>
+  </div>
+</section>
+
+<style>
+  .band {
+    padding-block: var(--space-xl) 0;
+  }
+  .band__inner {
+    position: relative;
+    display: grid;
+    grid-template-columns: 1.4fr 1fr;
+    align-items: center;
+    gap: var(--space-l);
+    padding: clamp(1.75rem, 1rem + 3vw, 3.5rem);
+    border-radius: var(--radius-l);
+    border: 1px solid var(--line);
+    overflow: hidden;
+    isolation: isolate;
+    background: var(--indigo-850);
+  }
+  .band__art {
+    position: absolute;
+    inset: 0;
+    z-index: -1;
+    background:
+      linear-gradient(90deg, rgb(13 5 34 / 0.96) 35%, rgb(13 5 34 / 0.55)),
+      url('/brand/atmosphere-skyline.webp') center bottom / cover no-repeat;
+  }
+  .band__art::after {
+    content: '';
+    position: absolute;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    height: 3px;
+    background: var(--sunset);
+  }
+  .band h2 {
+    font-size: var(--step-4);
+    margin-block: 0.5rem 0.75rem;
+  }
+  .band p {
+    color: var(--text-dim);
+    max-width: 44ch;
+  }
+  .band__ctas {
+    display: grid;
+    gap: 0.75rem;
+    justify-items: stretch;
+  }
+  @media (max-width: 820px) {
+    .band__inner {
+      grid-template-columns: 1fr;
+    }
+  }
+  :global([data-direction='a']) .band__inner {
+    background: var(--cream);
+    color: var(--ink);
+    border: 0;
+  }
+  :global([data-direction='a']) .band__art {
+    display: none;
+  }
+  :global([data-direction='a']) .band p {
+    color: #3b3446;
+  }
+  :global([data-direction='a']) .band :global(.sub--secondary) {
+    color: var(--ink);
+    border-color: rgb(11 11 16 / 0.3);
+  }
+</style>

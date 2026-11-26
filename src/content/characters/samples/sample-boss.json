@@ -1,0 +1,12 @@
+{
+  "name": "Sample Boss",
+  "role": "Crime boss (sample)",
+  "summary": "SAMPLE: a supporting character entry.",
+  "spoiler": true,
+  "spoilerText": "SAMPLE spoiler text.",
+  "relatedCharacters": [],
+  "images": [],
+  "sample": true,
+  "confirmedIn": "not-confirmed",
+  "lastVerified": "2026-11-26"
+}

@@ -1,0 +1,36 @@
+{
+  "_help": "HOW TO ADD A VEHICLE: copy this file, rename it (e.g. vapid-stanier.json - the name becomes the web address), fill in what you have CONFIRMED, delete the _help line, save and push. Leave a value out (or null) if it is not confirmed yet - the site shows \"Not confirmed yet\" instead of guessing.",
+  "name": "Vapid Stanier",
+  "class": "sedans",
+  "manufacturer": "Vapid",
+  "realLife": "Ford Crown Victoria",
+  "summary": "Optional: the answer in one or two sentences. Leave this line out and the site writes it from the facts below.",
+  "topSpeedMph": 112,
+  "price": 24000,
+  "priceNote": "Optional, e.g. \"Can be stolen for free\"",
+  "location": "Where you found it, e.g. \"Parked outside the Vice City motel strip\"",
+  "seats": 4,
+  "stats": {
+    "speed": 55,
+    "acceleration": 48,
+    "braking": 50,
+    "handling": 52
+  },
+  "tier": "B",
+  "images": [
+    {
+      "src": "/images/vehicles/vapid-stanier-1.webp",
+      "alt": "Vapid Stanier parked at night in Vice City"
+    }
+  ],
+  "youtubeId": "AbCdEfGhIjK",
+  "shortId": "AbCdEfGhIjK",
+  "faq": [
+    {
+      "q": "Where do you find the Vapid Stanier in GTA 6?",
+      "a": "One clear sentence answer."
+    }
+  ],
+  "confirmedIn": "game",
+  "lastVerified": "2026-11-26"
+}

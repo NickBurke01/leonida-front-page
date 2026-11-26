@@ -1,0 +1,24 @@
+{
+  "name": "Sample Pistol",
+  "category": "pistols",
+  "ammo": "9mm",
+  "magazine": 12,
+  "price": 1800,
+  "location": "SAMPLE: replace with where to get it",
+  "attachments": [
+    "Suppressor",
+    "Flashlight"
+  ],
+  "stats": {
+    "damage": 42,
+    "fireRate": 50,
+    "range": 38,
+    "accuracy": 70
+  },
+  "tier": "B",
+  "images": [],
+  "faq": [],
+  "sample": true,
+  "confirmedIn": "not-confirmed",
+  "lastVerified": "2026-11-26"
+}

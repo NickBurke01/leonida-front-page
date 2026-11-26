@@ -1,0 +1,183 @@
+---
+/** Shared article page for guides and news posts. */
+import type { CollectionEntry } from 'astro:content';
+import { render } from 'astro:content';
+import { GUIDE_CATEGORIES, NEWS_CATEGORIES, LONG } from '~/config/site';
+import { formatDate, readingMinutes } from '~/lib/format';
+import { getChannels } from '~/lib/youtube';
+import Breadcrumbs from './Breadcrumbs.astro';
+import FeaturedVideo from './FeaturedVideo.astro';
+import ContentsBar from './ContentsBar.astro';
+import WatchNext from './WatchNext.astro';
+import GuideCard from './GuideCard.astro';
+import SubscribeButton from './SubscribeButton.astro';
+
+interface Props {
+  entry: CollectionEntry<'guides'> | CollectionEntry<'news'>;
+  related: (CollectionEntry<'guides'> | CollectionEntry<'news'>)[];
+  crumbs: { name: string; href: string }[];
+}
+const { entry, related, crumbs } = Astro.props;
+const { Content, headings } = await render(entry);
+const d = entry.data;
+const isGuide = entry.collection === 'guides';
+const categoryLabel = isGuide
+  ? GUIDE_CATEGORIES[d.category as keyof typeof GUIDE_CATEGORIES].label
+  : NEWS_CATEGORIES[d.category as keyof typeof NEWS_CATEGORIES];
+const categoryHref = isGuide ? `/guides/${d.category}/` : '/news/';
+const minutes = readingMinutes(entry.body);
+const { long } = await getChannels();
+const hasVideo = Boolean(d.youtubeId || long.longVideos.length);
+---
+<ContentsBar headings={headings} videoAnchor={hasVideo ? 'video' : undefined} />
+
+<article class="art" data-article>
+  <header class="art__head" data-article-header>
+    <div class="wrap">
+      <Breadcrumbs items={crumbs} />
+      <div class="art__pills">
+        <a class="pill" href={categoryHref}>{categoryLabel}</a>
+        {d.placeholder && <span class="pill pill--quiet">Full guide coming with the video</span>}
+      </div>
+      <h1>{d.title}</h1>
+      <p class="art__lede">{d.description}</p>
+      <p class="meta">
+        <span>By Leonida Front Page</span>
+        <time datetime={d.date.toISOString()}>{formatDate(d.date)}</time>
+        {d.updated && <span>Updated <time datetime={d.updated.toISOString()}>{formatDate(d.updated)}</time></span>}
+        {!d.placeholder && <span>{minutes} min read</span>}
+      </p>
+    </div>
+  </header>
+
+  <div class="wrap art__grid">
+    <div class="art__main">
+      <div class="art__video" id="video">
+        <FeaturedVideo videoId={d.youtubeId} title={d.title} compact />
+        <p class="art__video-note">
+          {d.youtubeId ? 'Watch the full breakdown on Leonida Front Page.' : long.longVideos.length ? 'The latest edition from Leonida Front Page.' : 'The full breakdown arrives with the first long-form edition.'}
+        </p>
+      </div>
+
+      {d.placeholder && (
+        <div class="art__notice" role="note">
+          <p><strong>This guide is being written.</strong> The outline is below; the full guide, with every point shown on screen, lands with the video.</p>
+          <SubscribeButton channel={LONG} variant="compact" label="Get notified" />
+        </div>
+      )}
+
+      <div class="prose">
+        <Content />
+      </div>
+    </div>
+    <div class="art__aside">
+      <div class="art__sticky">
+        <WatchNext exclude={d.youtubeId} />
+      </div>
+    </div>
+  </div>
+</article>
+
+{related.length > 0 && (
+  <section class="section" aria-labelledby="related-heading">
+    <div class="wrap">
+      <div class="section-head">
+        <div>
+          <span class="kicker">Keep reading</span>
+          <h2 id="related-heading">{isGuide ? 'Related guides' : 'More from the news desk'}</h2>
+        </div>
+        <a class="more" href={isGuide ? '/guides/' : '/news/'}>{isGuide ? 'All guides' : 'All news'}</a>
+      </div>
+      <div class="grid-cards">
+        {related.map((r) => <GuideCard entry={r} />)}
+      </div>
+    </div>
+  </section>
+)}
+
+<style>
+  .art__head {
+    position: relative;
+    padding-block: var(--space-xl) var(--space-l);
+    isolation: isolate;
+  }
+  .art__head::before {
+    content: '';
+    position: absolute;
+    inset: 0 0 -30%;
+    z-index: -1;
+    background: radial-gradient(45% 80% at 20% 0%, rgb(154 32 101 / 0.24), transparent 70%);
+  }
+  .art__pills {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.5rem;
+    margin-top: var(--space-m);
+  }
+  .art__pills a {
+    text-decoration: none;
+  }
+  .art h1 {
+    font-size: var(--step-5);
+    margin-top: var(--space-s);
+    max-width: 22ch;
+  }
+  .art__lede {
+    margin-block: var(--space-s);
+    max-width: 62ch;
+    font-size: var(--step-1);
+    line-height: 1.5;
+    color: var(--text-dim);
+  }
+  .art__grid {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) 320px;
+    gap: clamp(1.5rem, 1rem + 3vw, 4rem);
+    align-items: start;
+  }
+  .art__video {
+    margin-bottom: var(--space-l);
+  }
+  .art__video-note {
+    margin-top: 0.6rem;
+    font-family: var(--font-ui);
+    font-size: 0.85rem;
+    color: var(--text-mute);
+  }
+  .art__notice {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    justify-content: space-between;
+    gap: var(--space-s);
+    margin-bottom: var(--space-l);
+    padding: var(--space-s) var(--space-m);
+    border: 1px solid rgb(250 184 60 / 0.35);
+    background: rgb(250 184 60 / 0.07);
+    border-radius: var(--radius-m);
+    font-family: var(--font-ui);
+    font-size: 0.92rem;
+    color: var(--text-dim);
+  }
+  .art__notice p {
+    flex: 1 1 320px;
+  }
+  .art__notice strong {
+    color: var(--amber);
+  }
+  .art__sticky {
+    position: sticky;
+    top: calc(var(--masthead-h) + 64px);
+  }
+  @media (max-width: 1020px) {
+    .art__grid {
+      grid-template-columns: 1fr;
+    }
+    .art__aside {
+      max-width: 560px;
+    }
+    .art__sticky {
+      position: static;
+    }
+  }
+</style>

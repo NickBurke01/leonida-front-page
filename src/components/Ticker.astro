@@ -1,0 +1,139 @@
+---
+import { getChannels, getTopShorts, formatViews } from '~/lib/youtube';
+import { SITE } from '~/config/site';
+
+const { long } = await getChannels();
+const { shown } = await getTopShorts();
+type Item = { text: string; href?: string; tag: string };
+const items: Item[] = [
+  ...long.longVideos.slice(0, 4).map((v) => ({ text: v.title, href: v.url, tag: 'New video' })),
+  ...shown.slice(0, 5).map((v) => ({ text: v.title.replace(/\s*#\w+/g, '').trim(), href: v.url, tag: `Top Short · ${formatViews(v.views)}` })),
+];
+const fallback: Item[] = [
+  { text: 'GTA 6 guides, secrets and news. The complete picture.', tag: 'Front page' },
+  { text: SITE.tagline, tag: 'Leonida Front Page' },
+  { text: 'Long-form breakdowns on Leonida Front Page. Daily Shorts on Leonida FP.', tag: 'Watch' },
+];
+const list = items.length ? items : fallback;
+---
+<div class="ticker" role="region" aria-label="Latest from the channels">
+  <div class="wrap ticker__inner">
+    <span class="ticker__label"><span class="ticker__dot" aria-hidden="true"></span>Latest</span>
+    <div class="ticker__viewport" tabindex="0" aria-label="Latest uploads, scrollable">
+      <ul class="ticker__track">
+        {[0, 1].map((copy) => list.map((it) => (
+          <li aria-hidden={copy === 1 ? 'true' : undefined}>
+            <span class="ticker__tag">{it.tag}</span>
+            {it.href ? (
+              <a href={it.href} target="_blank" rel="noopener" tabindex={copy === 1 ? -1 : undefined}>{it.text}</a>
+            ) : (
+              <span>{it.text}</span>
+            )}
+          </li>
+        )))}
+      </ul>
+    </div>
+  </div>
+</div>
+
+<style>
+  .ticker {
+    border-bottom: 1px solid var(--line);
+    background: linear-gradient(90deg, rgb(209 10 78 / 0.08), transparent 30%);
+    font-family: var(--font-ui);
+    font-size: 0.82rem;
+  }
+  .ticker__inner {
+    display: flex;
+    align-items: center;
+    gap: var(--space-s);
+    height: 42px;
+  }
+  .ticker__label {
+    flex: none;
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5em;
+    padding: 0.28rem 0.7rem;
+    background: var(--amber);
+    color: var(--ink);
+    font-weight: 800;
+    font-size: 0.7rem;
+    letter-spacing: 0.16em;
+    text-transform: uppercase;
+    border-radius: 3px;
+    transform: rotate(-2deg);
+  }
+  .ticker__dot {
+    width: 7px;
+    height: 7px;
+    border-radius: 50%;
+    background: var(--crimson);
+  }
+  @media (prefers-reduced-motion: no-preference) {
+    .ticker__dot {
+      animation: pulse 1.8s ease-in-out infinite;
+    }
+  }
+  @keyframes pulse {
+    50% {
+      opacity: 0.25;
+    }
+  }
+  .ticker__viewport {
+    flex: 1;
+    min-width: 0;
+    overflow: hidden;
+    mask-image: linear-gradient(90deg, transparent, #000 4%, #000 92%, transparent);
+  }
+  .ticker__track {
+    display: flex;
+    width: max-content;
+    list-style: none;
+    padding: 0;
+    gap: 2.6rem;
+  }
+  .ticker__track li {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.6rem;
+    white-space: nowrap;
+    color: var(--text-dim);
+  }
+  .ticker__tag {
+    color: var(--amber);
+    font-weight: 700;
+    font-size: 0.68rem;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+  }
+  .ticker__track a {
+    text-decoration: none;
+  }
+  .ticker__track a:hover {
+    color: var(--cream);
+    text-decoration: underline;
+  }
+  @media (prefers-reduced-motion: no-preference) {
+    .ticker__track {
+      animation: ticker 70s linear infinite;
+    }
+    .ticker__viewport:hover .ticker__track,
+    .ticker__viewport:focus-within .ticker__track {
+      animation-play-state: paused;
+    }
+  }
+  @media (prefers-reduced-motion: reduce) {
+    .ticker__viewport {
+      overflow-x: auto;
+    }
+    .ticker__track li[aria-hidden='true'] {
+      display: none;
+    }
+  }
+  @keyframes ticker {
+    to {
+      transform: translateX(calc(-50% - 1.3rem));
+    }
+  }
+</style>

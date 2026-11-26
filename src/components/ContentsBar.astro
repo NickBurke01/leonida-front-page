@@ -1,0 +1,216 @@
+---
+/**
+ * Sticky contents bar for long pages: current section, jump list, reading progress,
+ * and a "Watch the video" button when the page has one. Appears after the article header.
+ */
+import Icon from './Icon.astro';
+interface Props {
+  headings: { depth: number; slug: string; text: string }[];
+  videoAnchor?: string;
+}
+const { headings, videoAnchor } = Astro.props;
+const h2 = headings.filter((h) => h.depth === 2);
+---
+<div class="cb" data-cb hidden>
+  <div class="wrap cb__inner">
+    <details class="cb__menu" data-cb-menu>
+      <summary>
+        <span class="cb__label">Contents</span>
+        <span class="cb__current" data-cb-current>{h2[0]?.text ?? ''}</span>
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M6 9l6 6 6-6" /></svg>
+      </summary>
+      <ol>
+        {h2.map((h) => <li><a href={`#${h.slug}`} data-cb-link={h.slug}>{h.text}</a></li>)}
+      </ol>
+    </details>
+    <span class="cb__pct" data-cb-pct aria-hidden="true">0%</span>
+    {videoAnchor && (
+      <a class="cb__video" href={`#${videoAnchor}`}><Icon name="play" size={14} />Watch the video</a>
+    )}
+  </div>
+  <div class="cb__bar" aria-hidden="true"><span data-cb-progress></span></div>
+</div>
+
+<script>
+  const cb = document.querySelector<HTMLElement>('[data-cb]');
+  const article = document.querySelector<HTMLElement>('[data-article]');
+  const header = document.querySelector<HTMLElement>('[data-article-header]');
+  if (cb && article && header) {
+    cb.hidden = false;
+    const bar = cb.querySelector<HTMLElement>('[data-cb-progress]')!;
+    const pct = cb.querySelector<HTMLElement>('[data-cb-pct]')!;
+    const current = cb.querySelector<HTMLElement>('[data-cb-current]')!;
+    const menu = cb.querySelector<HTMLDetailsElement>('[data-cb-menu]')!;
+    const links = [...cb.querySelectorAll<HTMLAnchorElement>('[data-cb-link]')];
+    const sections = links.map((l) => document.getElementById(l.dataset.cbLink!)).filter(Boolean) as HTMLElement[];
+
+    new IntersectionObserver(([e]) => cb.classList.toggle('is-on', !e.isIntersecting && e.boundingClientRect.top < 0)).observe(header);
+
+    let ticking = false;
+    const update = () => {
+      ticking = false;
+      const rect = article.getBoundingClientRect();
+      const total = rect.height - window.innerHeight * 0.6;
+      const done = Math.min(1, Math.max(0, -rect.top / Math.max(1, total)));
+      bar.style.transform = `scaleX(${done})`;
+      pct.textContent = `${Math.round(done * 100)}%`;
+      let active = sections[0];
+      for (const s of sections) if (s.getBoundingClientRect().top < 140) active = s;
+      if (active) {
+        current.textContent = active.textContent;
+        links.forEach((l) => l.toggleAttribute('aria-current', l.dataset.cbLink === active.id));
+      }
+    };
+    addEventListener('scroll', () => { if (!ticking) { ticking = true; requestAnimationFrame(update); } }, { passive: true });
+    update();
+    links.forEach((l) => l.addEventListener('click', () => (menu.open = false)));
+    document.addEventListener('click', (e) => { if (menu.open && !menu.contains(e.target as Node)) menu.open = false; });
+  }
+</script>
+
+<style>
+  .cb {
+    position: fixed;
+    left: 0;
+    right: 0;
+    top: var(--masthead-h);
+    z-index: 45;
+    background: rgb(19 7 44 / 0.94);
+    backdrop-filter: blur(12px);
+    -webkit-backdrop-filter: blur(12px);
+    border-bottom: 1px solid var(--line);
+    transform: translateY(-110%);
+    opacity: 0;
+    visibility: hidden;
+    transition:
+      transform 0.3s var(--ease),
+      opacity 0.3s var(--ease),
+      visibility 0.3s;
+  }
+  .cb.is-on {
+    transform: none;
+    opacity: 1;
+    visibility: visible;
+  }
+  .cb__inner {
+    display: flex;
+    align-items: center;
+    gap: var(--space-s);
+    min-height: 48px;
+  }
+  .cb__menu {
+    position: relative;
+    flex: 1;
+    min-width: 0;
+  }
+  .cb__menu summary {
+    display: flex;
+    align-items: center;
+    gap: 0.7rem;
+    list-style: none;
+    cursor: pointer;
+    padding: 0.4rem 0;
+    font-family: var(--font-ui);
+    font-size: 0.9rem;
+  }
+  .cb__menu summary::-webkit-details-marker {
+    display: none;
+  }
+  .cb__label {
+    flex: none;
+    font-size: 0.7rem;
+    font-weight: 800;
+    letter-spacing: 0.16em;
+    text-transform: uppercase;
+    color: var(--amber);
+  }
+  .cb__current {
+    min-width: 0;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    font-weight: 600;
+  }
+  .cb__menu ol {
+    position: absolute;
+    top: calc(100% + 6px);
+    left: 0;
+    width: min(420px, 90vw);
+    max-height: 60vh;
+    overflow: auto;
+    padding: 0.5rem;
+    list-style: none;
+    background: var(--indigo-850);
+    border: 1px solid var(--line-strong);
+    border-radius: var(--radius-m);
+    box-shadow: var(--shadow-lift);
+    counter-reset: s;
+  }
+  .cb__menu li {
+    counter-increment: s;
+  }
+  .cb__menu ol a {
+    display: flex;
+    gap: 0.7rem;
+    padding: 0.55rem 0.6rem;
+    border-radius: 6px;
+    font-family: var(--font-ui);
+    font-size: 0.9rem;
+    text-decoration: none;
+    color: var(--text-dim);
+  }
+  .cb__menu ol a::before {
+    content: counter(s, decimal-leading-zero);
+    color: var(--text-mute);
+    font-variant-numeric: tabular-nums;
+  }
+  .cb__menu ol a:hover,
+  .cb__menu ol a[aria-current] {
+    background: var(--surface-2);
+    color: var(--cream);
+  }
+  .cb__pct {
+    font-family: var(--font-ui);
+    font-size: 0.78rem;
+    font-variant-numeric: tabular-nums;
+    color: var(--text-mute);
+  }
+  .cb__video {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.4rem;
+    padding: 0.45rem 0.85rem;
+    border-radius: var(--radius-pill);
+    background: var(--crimson);
+    color: var(--cream);
+    font-family: var(--font-ui);
+    font-size: 0.8rem;
+    font-weight: 700;
+    text-decoration: none;
+    white-space: nowrap;
+  }
+  .cb__bar {
+    height: 3px;
+    background: rgb(253 242 216 / 0.06);
+  }
+  .cb__bar span {
+    display: block;
+    height: 100%;
+    background: var(--sunset);
+    transform-origin: left;
+    transform: scaleX(0);
+  }
+  @media (max-width: 860px) {
+    .cb {
+      top: 58px;
+    }
+    .cb__pct {
+      display: none;
+    }
+  }
+  @media (prefers-reduced-motion: reduce) {
+    .cb {
+      transition: none;
+    }
+  }
+</style>
